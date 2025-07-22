@@ -1,6 +1,7 @@
 export default function DashboardPage() {
   return (
     <div className="w-[1822px] h-[1325px] relative bg-blue-800">
+      <h1>Maqueteando</h1>
       <div className="w-[1822px] h-[1325px] left-0 top-0 absolute bg-gray-200">
         <div className="w-64 h-[1325px] left-0 top-0 absolute" />
         <div className="w-[1566px] h-[1325px] left-[256px] top-0 absolute overflow-hidden">
