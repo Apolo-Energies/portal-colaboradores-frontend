@@ -49,7 +49,7 @@ export const FormLogin = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-3 text-base rounded-lg border bg-white dark:bg-gray-800 neutral:bg-gray-100 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200"
-          placeholder="tu@email.com"
+          placeholder="apolo@email.com"
           required
         />
       </div>
