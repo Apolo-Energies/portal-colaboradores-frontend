@@ -1,21 +1,20 @@
-"use client";
+import React from 'react'
 
+import { sidebarItems } from "@/constants/SidebarItems";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { sidebarItems } from "@/constants/SidebarItems";
 
-export const Sidebar = () => {
-  const pathname = usePathname();
+export const SidebarContent = () => {
+ const pathname = usePathname();
   const { theme } = useTheme();
-  // const role = "master";
 
   const logoSrc =
     theme === "dark" ? "/logos/apolologo2.webp" : "/logos/apolologo.webp";
 
   return (
-    <div className="w-64 bg-card border-r border-border h-screen">
+    <div className="w-64 bg-card border-r border-border h-full">
       <Link
         href="/dashboard"
         className="flex justify-center items-center w-full h-20 py-4 px-2"
@@ -31,7 +30,6 @@ export const Sidebar = () => {
         </div>
       </Link>
 
-      {/* Menú lateral */}
       <nav className="px-3">
         {sidebarItems.map((item, index) => {
           const isSelected = pathname === item.url;
@@ -47,9 +45,7 @@ export const Sidebar = () => {
               >
                 <item.icon
                   className={`w-4 h-4 ${
-                    isSelected
-                      ? "text-sidebar-selected-text"
-                      : "text-sidebar-text"
+                    isSelected ? "text-sidebar-selected-text" : "text-sidebar-text"
                   }`}
                 />
                 <span className="text-sm font-medium">{item.title}</span>
@@ -61,4 +57,3 @@ export const Sidebar = () => {
     </div>
   );
 };
-
