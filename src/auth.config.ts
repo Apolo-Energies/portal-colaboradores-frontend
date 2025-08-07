@@ -53,26 +53,29 @@ export const authConfig: NextAuthConfig = {
 
   secret: process.env.NEXTAUTH_SECRET,
 
+  session: {
+    strategy: "jwt",
+  },
+
   callbacks: {
     async jwt({ token, user }) {
-
-      console.log("next-auth config loaded: ", process.env.NEXTAUTH_SECRET);
-      if (!process.env.NEXTAUTH_SECRET) {
-        throw new Error(
-          "❌ NEXTAUTH_SECRET is not defined. Set it in your environment variables."
-        );
-      }
-      
-      if (user !== null) {
-        return { ...token, ...user };
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
-      return {
-        ...session,
-        user: token,
+      session.user = {
+        id: token.id as string,
+        name: token.name as string,
+        email: token.email as string,
+        role: token.role as string,
+        token: token.token as string, 
+        emailVerified: null,
       };
+      return session;
     },
   },
   trustHost: true,
