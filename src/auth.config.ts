@@ -2,7 +2,6 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { userLogin } from "./app/services/ApiAuth/auth.service";
-import jwt from "jsonwebtoken";
 
 export const authConfig: NextAuthConfig = {
   pages: {
@@ -23,25 +22,19 @@ export const authConfig: NextAuthConfig = {
         if (!parsedCredentials.success) return null;
 
         const { email, password } = parsedCredentials.data;
-
+        console.log("auth: ", email, password);
         try {
           const response = await userLogin(email, password);
 
+          console.log("response: ", response);
+
           if (!response || response.status !== 200) {
+            console.error("Credenciales incorrectas: ", response);
             return null;
           }
-          const data = response.data as { token: string };
-          const token = data.token;
-          const decoded = jwt.decode(token) as jwt.JwtPayload;
 
-          if (!decoded || !decoded.nameid) return null;
-          console.log("Usuario autenticado: ", decoded);
           return {
-            id: decoded.nameid,
-            email: decoded.unique_name || decoded.email,
-            name: decoded.given_name,
-            role: decoded.role,
-            token,
+            user: response.data,
           };
         } catch (error) {
           console.error("Error al autenticar:", error);
@@ -50,9 +43,6 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
-
-  // secret: process.env.NEXTAUTH_SECRET,
-
   callbacks: {
     async jwt({ token, user }) {
       if (user !== null) {
@@ -61,10 +51,9 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
-      return {
-        ...session,
-        user: token,
-      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      session = token as any;
+      return session;
     },
   },
   trustHost: true,
