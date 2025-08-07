@@ -30,5 +30,5 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
 
 // ✅ Solo aplica middleware a rutas dentro de /dashboard
 export const config = {
-  matcher: ["dashboard", "/dashboard/:path*"],
+  matcher: ["/dashboard", "/dashboard/:path*"],
 };
