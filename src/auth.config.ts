@@ -52,30 +52,19 @@ export const authConfig: NextAuthConfig = {
   ],
 
   secret: process.env.NEXTAUTH_SECRET,
-
-  session: {
-    strategy: "jwt",
-  },
-
+  
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
+      if (user !== null) {
+        return { ...token, ...user };
       }
       return token;
     },
     async session({ session, token }) {
-      session.user = {
-        id: token.id as string,
-        name: token.name as string,
-        email: token.email as string,
-        role: token.role as string,
-        token: token.token as string, 
-        emailVerified: null,
+      return {
+        ...session,
+        user: token,
       };
-      return session;
     },
   },
   trustHost: true,
