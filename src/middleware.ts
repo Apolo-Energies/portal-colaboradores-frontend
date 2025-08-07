@@ -5,7 +5,7 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session: any = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET ?? "",
+    secret: process.env.NEXTAUTH_SECRET,
   });
 
   const url = req.nextUrl;
