@@ -10,8 +10,7 @@ import { useLoadingStore } from "@/app/store/ui/LoadingStore";
 import { useAlertStore } from "@/app/store/ui/AlertStore";
 
 export const Comparador = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [matilData, setMatilData] = useState<any | null>(null);
+  const [matilData, setMatilData] = useState<unknown | null>(null);
   const [file, setFile] = useState<File | string | null>(null);
   const [openModal, setOpenModal] = useState(false);
 

@@ -25,13 +25,11 @@ export async function authenticate(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const login = async (email: string, password: string): Promise<any> => {
+export const login = async (email: string, password: string): Promise<unknown> => {
   try {
     await signIn("credentials", { email, password });
     return { ok: true };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log("Error: ", error);
     return {
       ok: false,

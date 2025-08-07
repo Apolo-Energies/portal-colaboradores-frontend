@@ -11,8 +11,7 @@ import { useForm } from "react-hook-form";
 interface Props {
   open: boolean;
   onClose: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  matilData?: any;
+  matilData?: unknown;
 }
 
 type FormData = {
@@ -23,8 +22,8 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
   const {
     register,
     formState: { errors },
-    handleSubmit,
-    reset,
+    // handleSubmit,
+    // reset,
   } = useForm<FormData>({
     defaultValues: {
       producto: "Index base",

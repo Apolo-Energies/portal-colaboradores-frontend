@@ -2,8 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
 export default async function middleware(req: NextRequest): Promise<NextResponse> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const session: any = await getToken({
+  const session: unknown = await getToken({
     req,
     secret: process.env.AUTH_SECRET ?? "",
   });

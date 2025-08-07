@@ -9,8 +9,7 @@ export interface ApiResponse<T> {
 export const userLogin = async (
   userName: string,
   password: string
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<unknown>> => {
   if (!userName || !password) {
     return {
       data: "Usuario o contraseña vacíos",
