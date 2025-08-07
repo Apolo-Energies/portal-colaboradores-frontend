@@ -2,19 +2,17 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
 export default async function middleware(req: NextRequest): Promise<NextResponse> {
-  const session: unknown = await getToken({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session: any = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET ?? "",
   });
-  
+
+  const url = req.nextUrl;
+
   console.log("Middleware session:", session);
-
-  const isAuth = !!session;
-  const isDashboard = req.nextUrl.pathname.startsWith("/dashboard"); 
-
   // Si no hay sesión, redirige al login
-  if (!isAuth && isDashboard) {
-    const url = req.nextUrl.clone();
+  if (!session) {
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
