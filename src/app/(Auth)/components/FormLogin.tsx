@@ -18,6 +18,8 @@ export const FormLogin = () => {
     undefined
   );
 
+  console.log("FormLogin - callbackUrl:", callbackUrl);
+
   const { showAlert } = useAlertStore();
 
   const lastErrorRef = useRef<string | undefined>(undefined);

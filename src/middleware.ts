@@ -9,12 +9,16 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
 
   const url = req.nextUrl;
 
-  console.log("Middleware session:", session);
-  // Si no hay sesión, redirige al login
+  console.log("⏩ URL:", url.pathname);
+  console.log("🧠 SESSION:", session);
+
   if (!session) {
+    console.log("❌ NO SESSION. Redirigiendo a /");
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
+
+  console.log("✅ SESSION DETECTADA. Pasando...");
 
   // const userRole = session.user?.role;
 
