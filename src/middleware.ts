@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export default async function middleware(req: NextRequest): Promise<NextResponse> {
   const session: unknown = await getToken({
     req,
-    secret: process.env.AUTH_SECRET ?? "",
+    secret: process.env.NEXTAUTH_SECRET ?? "",
   });
 
   const url = req.nextUrl;
