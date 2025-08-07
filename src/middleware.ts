@@ -6,12 +6,15 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
-
-  const url = req.nextUrl;
-
+  
   console.log("Middleware session:", session);
+
+  const isAuth = !!session;
+  const isDashboard = req.nextUrl.pathname.startsWith("/dashboard"); 
+
   // Si no hay sesión, redirige al login
-  if (!session) {
+  if (!isAuth && isDashboard) {
+    const url = req.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
