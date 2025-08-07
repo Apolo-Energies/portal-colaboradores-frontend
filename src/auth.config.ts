@@ -33,9 +33,7 @@ export const authConfig: NextAuthConfig = {
             return null;
           }
 
-          return {
-            user: response.data,
-          };
+          return response.data;
         } catch (error) {
           console.error("Error al autenticar:", error);
           return null; // Asegurarse de que no se cree una sesión si hay error
