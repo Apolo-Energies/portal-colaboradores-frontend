@@ -41,11 +41,17 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
+
+  session: {
+    strategy: "jwt",
+  },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user !== null) {
         return { ...token, ...user };
       }
+      console.log("token desde callbacks: ", token);
       return token;
     },
     async session({ session, token }) {
