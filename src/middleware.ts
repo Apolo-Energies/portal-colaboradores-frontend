@@ -7,6 +7,8 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  console.log("Cookies:", req.cookies.getAll());
+
   console.log("🔐 secret: ", process.env.NEXTAUTH_SECRET);
   const url = req.nextUrl;
 
