@@ -7,6 +7,7 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  console.log("🔐 secret: ", process.env.NEXTAUTH_SECRET);
   const url = req.nextUrl;
 
   console.log("⏩ URL:", url.pathname);
