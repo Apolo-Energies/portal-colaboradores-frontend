@@ -4,7 +4,7 @@ import React from "react";
 import { ModeToggle } from "../buttons/ModeToggle";
 import { Button } from "../buttons/button";
 import { UserMenu } from "./UserMenu";
-import { useSidebarStore } from "@/app/store/SidebarStore";
+import { useSidebarStore } from "@/app/store/sidebar.store";
 
 export const Header = () => {
   const { toggle } = useSidebarStore();
@@ -31,9 +31,9 @@ export const Header = () => {
         <div className="flex items-center space-x-4">
           <ModeToggle />
 
-          <Button variant="outline" size="icon">
+          {/* <Button variant="outline" size="icon">
             <Bell className="w-4 h-4" />
-          </Button>
+          </Button> */}
 
           <UserMenu />
         </div>

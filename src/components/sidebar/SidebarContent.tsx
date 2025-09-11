@@ -1,17 +1,39 @@
-import React from 'react'
+
+import React, { useEffect, useState } from "react";
 
 import { sidebarItems } from "@/constants/SidebarItems";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
 
 export const SidebarContent = () => {
- const pathname = usePathname();
+  const pathname = usePathname();
   const { theme } = useTheme();
+  const { data: session, update } = useSession();
+  const [sessionUpdated, setSessionUpdated] = useState(false);
 
+  
+  useEffect(() => {
+    // Si hay sesión y aún no hemos hecho update
+    if (session && !sessionUpdated) {
+      update(); // fuerza recarga de sesión
+      setSessionUpdated(true); // marca que ya se ejecutó
+    }
+  }, [session, sessionUpdated, update]);
+  
   const logoSrc =
     theme === "dark" ? "/logos/apolologo2.webp" : "/logos/apolologo.webp";
+
+  console.log("rol actual: ", session?.user?.role);
+  const userRole = session?.user.role || ""; // debe ser "Master" o "Colaborador"
+  console.log("rol actual: ", userRole);
+ 
+  // Filtramos los items segun el rol del usuario
+  const itemsToRender = sidebarItems.filter((item) =>
+    item.roles.includes(userRole)
+  );
 
   return (
     <div className="w-64 bg-card border-r border-border h-full">
@@ -31,7 +53,7 @@ export const SidebarContent = () => {
       </Link>
 
       <nav className="px-3">
-        {sidebarItems.map((item, index) => {
+        {itemsToRender.map((item, index) => {
           const isSelected = pathname === item.url;
           return (
             <Link href={item.url} key={index}>
@@ -45,7 +67,9 @@ export const SidebarContent = () => {
               >
                 <item.icon
                   className={`w-4 h-4 ${
-                    isSelected ? "text-sidebar-selected-text" : "text-sidebar-text"
+                    isSelected
+                      ? "text-sidebar-selected-text"
+                      : "text-sidebar-text"
                   }`}
                 />
                 <span className="text-sm font-medium">{item.title}</span>

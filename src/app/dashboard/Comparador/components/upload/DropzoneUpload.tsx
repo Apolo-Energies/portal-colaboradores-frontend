@@ -19,43 +19,36 @@ interface Props {
 
 export const DropzoneUpload = ({ onFileSelect }: Props) => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [hovering, setHovering] = useState(false);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setHovering(false);
-
-    const droppedFile = e.dataTransfer.files[0];
-    const droppedUrl = e.dataTransfer.getData("text/plain");
-
-    if (droppedFile) {
-      if (acceptedFormats.includes(droppedFile.type)) {
-        const url = URL.createObjectURL(droppedFile);
-        setPreview(url);
-        onFileSelect(droppedFile);
-      } else {
-        alert("Formato no soportado.");
-      }
-    } else if (droppedUrl) {
-      setPreview(droppedUrl);
-      onFileSelect(droppedUrl);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && acceptedFormats.includes(file.type)) {
+  const handleFile = (file: File) => {
+    if (acceptedFormats.includes(file.type)) {
       const url = URL.createObjectURL(file);
       setPreview(url);
+      setIsPdf(file.type === "application/pdf");
       onFileSelect(file);
     } else {
       alert("Formato no soportado.");
     }
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setHovering(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
   const handleClear = () => {
     setPreview(null);
+    setIsPdf(false);
     onFileSelect("");
   };
 
@@ -86,10 +79,12 @@ export const DropzoneUpload = ({ onFileSelect }: Props) => {
         />
         {preview ? (
           <div className="relative w-full flex flex-col items-center space-y-2">
-            {preview.endsWith(".pdf") ? (
-              <p className="text-sm text-muted-foreground">
-                📄 Archivo PDF cargado
-              </p>
+            {isPdf ? (
+              <iframe
+                src={preview}
+                className="w-full h-64 rounded-md border"
+                title="PDF Preview"
+              />
             ) : (
               <img
                 src={preview}

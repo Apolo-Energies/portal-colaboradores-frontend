@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from 'react'
-import { useAlertStore } from '@/app/store/ui/AlertStore';
+import { useAlertStore } from '@/app/store/ui/alert.store';
 import { AlertTriangle, CheckCircle2, Zap } from 'lucide-react';
 
 export const Alert = () => {

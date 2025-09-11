@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react'
-import { useAlertStore } from '@/app/store/ui/AlertStore';
+import { useAlertStore } from '@/app/store/ui/alert.store';
 import Link from 'next/link'
 import { RingLoader } from 'react-spinners';
 

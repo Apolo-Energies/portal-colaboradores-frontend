@@ -1,33 +1,23 @@
-import axios from "axios";
+import { ApiManagerColaboradores } from "../ApiManager/ApiManagerColaboradores";
 
-const MATIL_API_URL = "https://api.matil.ai/v3/structurer/";
-const STRUCTURE_ID = "0197a39d-164d-7766-a3d0-4290a0f0741f";
-const API_KEY = "src_RranAuJ-HUP72tSsCwiNOChCXfSvOQ9aXHH4tNWtMwk";
-
-export const analizarDocumentoMatil = async (urlDocumento: string) => {
+export const subirYProcesarDocumento = async (token :string, file: File, nombre: string, tipo: number) => {
   try {
-    const response = await axios.post(
-      `${MATIL_API_URL}?structure_id=${STRUCTURE_ID}`,
-      {
-        documents: [
-          {
-            type: "pdf",
-            url: urlDocumento,
-            metadata: { filename: "documento.pdf" },
-          },
-        ],
+    console.log("token desde el service: ", token)
+    const formData = new FormData();
+    formData.append("Archivo", file);
+    formData.append("Nombre", nombre);
+    formData.append("Tipo", tipo.toString());
+
+    const response = await ApiManagerColaboradores.post("/archivos/upload-and-process", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`
       },
-      {
-        headers: {
-          "x-api-key": API_KEY,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
 
     return response.data;
   } catch (error) {
-    console.error("Error al analizar documento:", error);
+    console.error("Error al subir y procesar documento:", error);
     throw error;
   }
 };

@@ -14,6 +14,7 @@ interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;
   required?: boolean;
   errors?: FieldErrors<T>;
+  defaultValue?: string | number;
 }
 
 export const Input = <T extends FieldValues>({
@@ -24,6 +25,7 @@ export const Input = <T extends FieldValues>({
   register,
   required = false,
   errors,
+  defaultValue
 }: Props<T>) => {
   return (
     <div className="space-y-1">
@@ -40,6 +42,7 @@ export const Input = <T extends FieldValues>({
             ? "border-red-500 ring-red-500"
             : "border-border ring-blue-500"
         }`}
+        defaultValue={defaultValue}
       />
       {errors && errors[name] && (
         <p className="text-xs text-red-600 mt-1">Este campo es obligatorio</p>

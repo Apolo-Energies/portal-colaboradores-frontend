@@ -1,49 +1,92 @@
 import axios from "axios";
 import { ApiManager } from "../ApiManager/ApiManager";
+import { ApiResponse } from "../interfaces/ApiResponse";
 
-export interface ApiResponse<T> {
-  data: T;
-  status: number;
-}
-
-export const userLogin = async (
-  userName: string,
-  password: string
-): Promise<ApiResponse<unknown>> => {
-  if (!userName || !password) {
+export const userLogin = async (email: string, password: string): Promise<ApiResponse<unknown>> => {
+  if (!email || !password) {
     return {
-      data: "Usuario o contraseña vacíos",
-      status: 400,
+      isSuccess: false,
+      displayMessage: "Email o contraseña vacíos",
+      errorMessages: ["Email o contraseña vacíos"],
+      result: null,
+      status: 400
     };
   }
 
   try {
-    const response = await ApiManager.post("/Autenticar", null, {
-      params: {
-        userName,
-        password,
-      },
-    });
+    const response = await ApiManager.post(
+      "/auth/login",
+      { email, password },
+      { withCredentials: false } // opcional si no usas cookies
+    );
 
     return {
-      data: response.data,
-      status: response.status,
+      isSuccess: true,
+      displayMessage: "Login exitoso",
+      errorMessages: [],
+      result: response.data.result.token,
+      status: response.status
     };
   } catch (error) {
+    console.error("Login error:", error);
     if (axios.isAxiosError(error)) {
       return {
-        data: error.response?.data ?? "Unknown error",
+        isSuccess: false,
+        displayMessage: error.response?.data?.message ?? "Unknown error",
+        errorMessages: [error.response?.data?.message ?? "Unknown error"],
+        result: null,
         status: error.response?.status ?? 500,
       };
     }
-
     return {
-      data: "Unexpected error",
+      isSuccess: false,
+      displayMessage: "Unexpected error",
+      errorMessages: ["Unexpected error"],
+      result: null,
       status: 500,
     };
   }
 };
 
 
+export const resetPassword = async (data: {userId: string; token: string; newPassword: string;}): Promise<ApiResponse<unknown>> => {
+  if (!data.userId || !data.token || !data.newPassword) {
+    return {
+      isSuccess: false,
+      displayMessage: "Datos incompletos",
+      errorMessages: ["userId, token o password vacíos"],
+      result: null,
+      status: 400
+    };
+  }
 
+  try {
+    const response = await ApiManager.post("/auth/reset-password", data, { withCredentials: false });
 
+    return {
+      isSuccess: true,
+      displayMessage: "Contraseña actualizada correctamente",
+      errorMessages: [],
+      result: response.data.result,
+      status: response.status
+    };
+  } catch (error) {
+    console.error("Login error:", error);
+    if (axios.isAxiosError(error)) {
+      return {
+        isSuccess: false,
+        displayMessage: error.response?.data?.message ?? "Unknown error",
+        errorMessages: [error.response?.data?.message ?? "Unknown error"],
+        result: null,
+        status: error.response?.status ?? 500,
+      };
+    }
+    return {
+      isSuccess: false,
+      displayMessage: "Unexpected error",
+      errorMessages: ["Unexpected error"],
+      result: null,
+      status: 500,
+    };
+  }
+};

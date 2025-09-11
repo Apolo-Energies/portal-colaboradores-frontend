@@ -5,12 +5,17 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/buttons/button";
 import { DropzoneUpload } from "./upload/DropzoneUpload";
 import { ComparadorFormModal } from "./modals/ComparadorFormModal";
-import { analizarDocumentoMatil } from "@/app/services/MatilService/ocr.service";
-import { useLoadingStore } from "@/app/store/ui/LoadingStore";
-import { useAlertStore } from "@/app/store/ui/AlertStore";
+import { useLoadingStore } from "@/app/store/ui/loading.store";
+import { useAlertStore } from "@/app/store/ui/alert.store";
+import { subirYProcesarDocumento } from "@/app/services/MatilService/ocr.service";
+import { getTipoArchivo } from "@/utils/typeFile";
+import { MatilData, OcrData } from "../interfaces/matilData";
+import { useSession } from "next-auth/react";
 
 export const Comparador = () => {
   const [matilData, setMatilData] = useState<unknown | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
+
   const [file, setFile] = useState<File | string | null>(null);
   const [openModal, setOpenModal] = useState(false);
 
@@ -21,13 +26,33 @@ export const Comparador = () => {
     setFile(file);
   };
 
-  const handleComparar = async () => {
-    if (!file || typeof file !== "string") return;
+  const { data: session } = useSession();
 
+  console.log("token", session?.user.token);
+
+  const handleComparar = async () => {
+    if (!file || typeof file === "string") return;
+  
     setLoading(true);
     try {
-      const resultado = await analizarDocumentoMatil(file);
-      setMatilData(resultado?.data);
+      const tipo = getTipoArchivo(file);
+      const nombre = file.name.split(".")[0];
+  
+      const token = session?.user?.token;
+  
+      if (!token) {
+        showAlert("No se encontró el token de autenticación.", "error");
+        setLoading(false);
+        return;
+      }
+  
+      const resultado = await subirYProcesarDocumento(token, file, nombre, tipo);
+  
+      console.log("Resultado del procesamiento 1:", resultado);
+      console.log("Resultado del procesamiento 2:", resultado?.result?.ocrData);
+  
+      setMatilData(resultado?.result?.ocrData);
+      setFileId(resultado?.result?.id);
       setOpenModal(true);
       showAlert("Documento procesado correctamente.", "success");
     } catch (error) {
@@ -37,6 +62,7 @@ export const Comparador = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen px-6 py-8 space-y-6">
@@ -63,7 +89,9 @@ export const Comparador = () => {
       <ComparadorFormModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        matilData={matilData}
+        matilData={matilData as OcrData | undefined}
+        fileId={fileId || ""}
+        token={session?.user.token || ""}
       />
     </div>
   );

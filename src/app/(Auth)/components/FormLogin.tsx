@@ -4,7 +4,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { RingLoader } from "react-spinners";
 import { useSearchParams } from "next/navigation";
 import { authenticate } from "@/actions";
-import { useAlertStore } from "@/app/store/ui/AlertStore";
+import { useAlertStore } from "@/app/store/ui/alert.store";
 import Link from "next/link";
 
 export const FormLogin = () => {
@@ -12,7 +12,7 @@ export const FormLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/Comparador";
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined

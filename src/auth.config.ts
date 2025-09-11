@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { userLogin } from "./app/services/ApiAuth/auth.service";
+import { jwtDecode } from "jwt-decode";
 
 export const authConfig: NextAuthConfig = {
   pages: {
@@ -16,24 +17,30 @@ export const authConfig: NextAuthConfig = {
           .object({ email: z.string().email(), password: z.string().min(6) })
           .safeParse(credentials);
 
-        console.log("credenciales: ", parsedCredentials);
-        console.log("credenciales: ", parsedCredentials.data);
-
         if (!parsedCredentials.success) return null;
 
         const { email, password } = parsedCredentials.data;
-        console.log("auth: ", email, password);
+
+
         try {
           const response = await userLogin(email, password);
-
-          console.log("response: ", response);
 
           if (!response || response.status !== 200) {
             console.error("Credenciales incorrectas: ", response);
             return null;
           }
 
-          return response.data;
+          const jwt = response.result;
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const claims = jwtDecode<any>(jwt as string);
+
+          return {
+            id: claims.sub ?? claims.id,
+            email: claims.email,
+            role: claims["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ?? claims.role ?? "user",
+            token: jwt,
+          };;
         } catch (error) {
           console.error("Error al autenticar:", error);
           return null; // Asegurarse de que no se cree una sesión si hay error
@@ -48,15 +55,25 @@ export const authConfig: NextAuthConfig = {
 
   callbacks: {
     async jwt({ token, user }) {
-      if (user !== null) {
-        return { ...token, ...user };
+      if (user) {
+        // Type guard to ensure user has the expected properties
+        if ('id' in user) token.id = user.id;
+        if ('email' in user) token.email = user.email;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ('role' in user) token.role = (user as any).role;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ('token' in user) token.accessToken = (user as any).token; // el JWT crudo
       }
-      console.log("token desde callbacks: ", token);
       return token;
     },
     async session({ session, token }) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      session = token as any;
+      session.user = {
+        ...session.user,
+        id: token.id as string,
+        email: token.email as string,
+        role: token.role as string,
+        token: token.accessToken as string,
+      };
       return session;
     },
   },

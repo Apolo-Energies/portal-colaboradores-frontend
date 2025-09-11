@@ -1,69 +1,202 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Download, Mail } from "lucide-react";
 import { Dialog } from "@/components/Dialogs/Dialog";
 import { Button } from "@/components/buttons/button";
-import { Input } from "@/components/Inputs/Input";
 import { Slider } from "@/components/ui/Slider";
 import { useForm } from "react-hook-form";
+import { getIndexBase, PRODUCTS_BY_TARIFF } from "@/utils/mocks/tarifas";
+import { Select } from "@/components/Selects/Select";
+import { OcrData } from "../../interfaces/matilData";
+import { Input } from "@/components/Inputs/Input";
+import { useCommissionStore } from "@/app/store/commission/commission.store";
+import { useCalculatorStore } from "@/app/store/calculator/calculator.stores";
+import { FacturaResult } from "@/app/store/calculator/calculator.types";
+import { downloadPDF } from "@/app/services/PDFService/pdf.service";
+import { PDF, Unidad } from "@/app/services/interfaces/pdf";
+import { parseTitular } from "@/utils/paserNameRs";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  matilData?: unknown;
+  matilData?: OcrData;
+  fileId: string;
+  token: string;
 }
 
 type FormData = {
   producto: string;
+  precioMedio: number;
 };
 
-export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
+export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }: Props) => {
+  console.log("matildData: ", matilData)
+  console.log("matildData: ", matilData?.tarifa)
+  const defaultProducto = matilData?.tarifa
+    ? PRODUCTS_BY_TARIFF[matilData?.tarifa][0]
+    : "Index Base";
+
   const {
     register,
     formState: { errors },
+    watch,
     // handleSubmit,
     // reset,
   } = useForm<FormData>({
     defaultValues: {
-      producto: "Index base",
+      producto: defaultProducto,
     },
   });
-  const [feeEnergia, setFeeEnergia] = useState([83]);
-  const [feePotencia, setFeePotencia] = useState([83]);
+  const [feeEnergia, setFeeEnergia] = useState([0]);
+  const [feePotencia, setFeePotencia] = useState([0]);
+  const [resultadoFactura, setResultadoFactura] = useState<FacturaResult>();
 
-  console.log("Matil Data:", matilData);
+  const productoSeleccionado = watch("producto");
+  const comisionEnergia = getIndexBase(productoSeleccionado);
+  const precioMedioOmieInput = Number(watch("precioMedio")) || 20;
 
-  const calcularComision = () => {
-    const base = 2000;
-    const factor = (feeEnergia[0] + feePotencia[0]) / 200;
-    return (base * factor * 1.2295).toFixed(0);
-  };
+  const { comision, calcular } = useCommissionStore();
+  const calcularStore = useCalculatorStore();
 
-  const calcularAhorro = () => {
-    const base = 300;
-    const factor = (feeEnergia[0] + feePotencia[0]) / 200;
-    return (base * factor * 0.79).toFixed(0);
-  };
+  console.log("producto selecionado: ", productoSeleccionado);
 
-  const calcularPorcentajeExtra = () => {
-    const basePercentage = 8;
-    const factor = (feeEnergia[0] + feePotencia[0]) / 200;
-    return (basePercentage * factor + 2).toFixed(1);
-  };
+  useEffect(() => {
+    calcular({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      matilData: matilData as any,
+      feeEnergia,
+      comisionEnergia,
+      feePotencia,
+      productoSeleccionado,
+      getIndexBase,
+    });
+  }, [
+    matilData,
+    feeEnergia,
+    feePotencia,
+    productoSeleccionado,
+    comisionEnergia,
+    calcular,
+  ]);
 
-  const calcularAhorroAnual = () => {
-    const baseAmount = 10000;
-    const factor = (feeEnergia[0] + feePotencia[0]) / 200;
-    return (baseAmount * factor * 1.2).toFixed(0);
-  };
+  useEffect(() => {
+    if (!matilData) return;
+    const tarifa = matilData?.tarifa;
+    calcularStore.setTarifa(tarifa);
+
+    calcularStore.setProducto(
+      tarifa,
+      productoSeleccionado,
+      precioMedioOmieInput,
+      feeEnergia[0]
+    );
+    calcularStore.setPotencia(tarifa, feePotencia[0], productoSeleccionado);
+
+    const resultadoFactua = calcularStore.calcularFactura({
+      energia: matilData?.energia,
+      potencia: matilData?.potencia,
+      detalle: matilData?.detalle,
+    });
+    setResultadoFactura(resultadoFactua ?? undefined);
+  }, [matilData, productoSeleccionado, precioMedioOmieInput, feeEnergia, feePotencia]);
+  // }, [matilData, productoSeleccionado, precioMedioOmieInput, feeEnergia, feePotencia ]);
 
   const handleEnviarCliente = () => {
     console.log("Enviando al cliente...");
   };
 
-  const handleDescargarPDF = () => {
-    console.log("Descargando PDF...");
+  const handleDescargarPDF = async () => {
+    try {
+      const periodos = resultadoFactura?.periodos || [];
+      const { nombreEmpresa, razonSocial } = parseTitular(matilData?.titular);
+      const lineas = [
+        // Energía
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(matilData?.energia || []).map((e: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const periodo = periodos.find((p: any) => p.periodo === `P${e.p}`);
+          return {
+            termino: `ENERGÍA P${e.p}`,
+            unidad: Unidad.KWh,
+            valor: e.kwh,
+            precioActual: e.kwh ? e.activa_eur / e.kwh : 0,
+            costeActual: e.activa_eur,
+            precioOferta: periodo ? periodo.precioEnergiaOferta : 0,
+            costeOferta: periodo ? periodo.costeEnergia : 0,
+          };
+        }),
+
+        // Potencia
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(matilData?.potencia || []).map((p: any) => {
+          const periodo = periodos.find(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (per: any) => per.periodo === `P${p.p}`
+          );
+          return {
+            termino: `POTENCIA P${p.p}`,
+            unidad: Unidad.KW,
+            valor: p.kw,
+            precioActual: p.kw ? p.potencia_eur / p.kw / 31 : 0,
+            costeActual: p.potencia_eur,
+            precioOferta: periodo ? periodo.precioPotenciaOferta : 0,
+            costeOferta: periodo ? periodo.costePotencia : 0,
+          };
+        }),
+      ];
+      const pdfData: PDF = {
+        lineas,
+        archivoId: fileId ,
+        usuario: "usuario_ejemplo",
+        cups: matilData?.cups || "-",
+        datos: {
+          titulo: "Comparativa de oferta",
+          tarifa: matilData?.tarifa || "-",
+          modalidad: productoSeleccionado,
+          periodo: matilData?.fecha_fin || "-",
+          diasFactura: 31,
+          ahorro: resultadoFactura?.ahorroEstudio || 0,
+          ahorroPorcentaje: resultadoFactura?.ahorro_porcent || 0,
+          ahorroAnual: resultadoFactura?.ahorroXAnio || 0,
+          consumoAnual: resultadoFactura?.totalAnio || 0,
+        },
+        cliente: {
+          cif: matilData?.nif || "-",
+          nombreCliente: nombreEmpresa,
+          razonSocial: razonSocial || "-",
+          direccion:
+            `${matilData?.direccion?.tipo_via?.slice(0, 2).toUpperCase()} ${
+              matilData?.direccion?.nombre_via
+            }, ${matilData?.direccion?.numero} ${
+              matilData?.direccion?.detalles
+            }` || "-",
+        },
+        totales: {
+          baseActual: matilData?.detalle?.subtotal || 0,
+          baseOferta: resultadoFactura?.subTotal || 0,
+          impuestoElectricoActual: matilData?.detalle?.ie || 0,
+          impuestoElectricoOferta: resultadoFactura?.impuestoElectrico || 0,
+          alquilerEquipo: matilData?.detalle?.equipos || 0,
+          ivaActual: matilData?.detalle?.iva_igic?.valor || 0,
+          ivaOferta: resultadoFactura?.iva || 0,
+          totalActual: matilData?.detalle?.total || 0,
+          totalOferta: resultadoFactura?.total || 0,
+          otrosComunesConIeActual:matilData?.detalle?.bono_social || 0,
+          otrosComunesConIeOferta: matilData?.detalle?.bono_social || 0,
+          // datos un iniciertos
+          otrosComunesSinIeActual: 0,
+          otrosComunesSinIeOferta: 0,
+          otrosNoComunesActual: matilData?.detalle?.otros || 0,
+          otrosNoComunesOferta: 0,
+        },
+      };
+
+      await downloadPDF(token, pdfData); // llama a la función que descarga el PDF
+      console.log("PDF descargado correctamente");
+    } catch (error) {
+      console.error("Error al descargar el PDF:", error);
+    }
   };
 
   return (
@@ -76,11 +209,28 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Input
+        <div className="grid grid-cols-2 gap-2">
+          <Select
             label="Producto a ofertar"
             name="producto"
-            placeholder="Index base"
+            options={
+              matilData?.tarifa
+                ? PRODUCTS_BY_TARIFF[matilData?.tarifa].map((p) => ({
+                    label: p,
+                    value: p,
+                  }))
+                : []
+            }
+            placeholder="Elige una opción"
+            register={register}
+            required
+            errors={errors}
+          />
+          <Input
+            label="Precio medio OMIE (€/MWh)"
+            type="number"
+            name="precioMedio"
+            placeholder="20"
             register={register}
             required
             errors={errors}
@@ -103,7 +253,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
     ${
       feeEnergia[0] === 0
         ? "text-red-500"
-        : feeEnergia[0] === 100
+        : feeEnergia[0] === 50
         ? "text-green-600"
         : "text-foreground"
     }`}
@@ -118,17 +268,17 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
             <Slider
               value={feeEnergia}
               onValueChange={setFeeEnergia}
-              max={100}
+              max={50}
               min={0}
               step={1}
             />
             <div className="flex justify-end">
               <span
                 className={`text-sm font-semibold transition-colors ${
-                  feeEnergia[0] === 100 ? "text-green-600" : "text-foreground"
+                  feeEnergia[0] === 50 ? "text-green-600" : "text-foreground"
                 }`}
               >
-                100
+                50
               </span>
             </div>
           </div>
@@ -150,7 +300,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
     ${
       feePotencia[0] === 0
         ? "text-red-500"
-        : feePotencia[0] === 100
+        : feePotencia[0] === 25
         ? "text-green-600"
         : "text-foreground"
     }`}
@@ -165,7 +315,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
             <Slider
               value={feePotencia}
               onValueChange={setFeePotencia}
-              max={100}
+              max={25}
               min={0}
               step={1}
             />
@@ -173,10 +323,10 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
           <div className="flex justify-end">
             <span
               className={`text-sm font-semibold transition-colors ${
-                feePotencia[0] === 100 ? "text-green-600" : "text-foreground"
+                feePotencia[0] === 25 ? "text-green-600" : "text-foreground"
               }`}
             >
-              100
+              25
             </span>
           </div>
         </div>
@@ -188,22 +338,32 @@ export const ComparadorFormModal = ({ open, onClose, matilData }: Props) => {
               Comisión comercial
             </p>
             <p className="text-2xl font-bold text-foreground">
-              {calcularComision()}€
+              {Math.trunc(Number(comision)) + "€"}
             </p>
-            <p className="text-sm text-green-500">
-              +{calcularPorcentajeExtra()}% extra
-            </p>
+            <p className="text-sm text-green-500">+ 10% extra</p>
           </div>
 
           <div className="p-4 rounded-lg bg-input">
             <p className="text-sm font-medium text-foreground mb-1">
               Ahorro cliente
             </p>
-            <p className="text-2xl font-bold text-foreground">
-              {calcularAhorro()}€ al mes
+            <p className="text-xl font-bold text-foreground">
+              {/* {resultadoFactura?.ahorroEstudio}€ al mes */}
+              {Math.trunc(Number(resultadoFactura?.ahorroEstudio))}€ al mes
+            </p>
+            <p
+              className={`text-xl font-bold text-foreground ${
+                resultadoFactura?.ahorroXAnio &&
+                resultadoFactura.ahorroXAnio > 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            >
+              {/* {resultadoFactura?.ahorroXAnio}€ al año */}
+              {Math.trunc(Number(resultadoFactura?.ahorroXAnio))}€ al año
             </p>
             <p className="text-sm text-green-500">
-              +{calcularAhorroAnual()}€ al año
+              + {resultadoFactura?.ahorro_porcent}% de ahorro
             </p>
           </div>
         </div>

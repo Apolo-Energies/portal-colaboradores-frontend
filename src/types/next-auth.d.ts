@@ -9,4 +9,12 @@ declare module "next-auth" {
       token: string;
     };
   }
+  declare module "next-auth/jwt" {
+    interface JWT {
+      id?: string;
+      email?: string;
+      role?: string;
+      accessToken?: string; // 👈 JWT crudo, guardado en el token server-side
+    }
+  }
 }
