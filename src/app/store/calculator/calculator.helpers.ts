@@ -157,11 +157,11 @@ export const calcularFacturaHelper = (
     ) * (1 + 0.0511269632 + 0.21)
   );
   
-  console.log("total energia 1: ", matilData.detalle.totales_energia.activa_eur, totalEnergia, kwhEnergia);
-  console.log("total energia 2: ", matilData.detalle.totales_potencia.potencia_eur, totalPotencia,);
-  console.log("total energia 3: ", matilData.detalle.otros);
-  console.log("total energia 4: ", subTotal, total, totalEnergia, totalPotencia);
-  console.log("periodos: ", periodos);
+  // console.log("total energia 1: ", matilData.detalle.totales_energia.activa_eur, totalEnergia, kwhEnergia);
+  // console.log("total energia 2: ", matilData.detalle.totales_potencia.potencia_eur, totalPotencia,);
+  // console.log("total energia 3: ", matilData.detalle.otros);
+  // console.log("total energia 4: ", subTotal, total, totalEnergia, totalPotencia);
+  // console.log("periodos: ", periodos);
   const ahorroXAnio = Number(ahorroAnio.toFixed(2));
   return { periodos, totalEnergia, totalPotencia, total, ahorroEstudio, ahorro_porcent, ahorroXAnio, subTotal, impuestoElectrico, iva, totalAnio };
 };

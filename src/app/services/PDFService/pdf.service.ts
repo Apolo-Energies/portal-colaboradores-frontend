@@ -1,10 +1,11 @@
-import { ApiManagerColaboradores } from "../ApiManager/ApiManagerColaboradores";
+import { ApiManager } from "../ApiManager/ApiManager";
+// import { ApiManagerColaboradores } from "../ApiManager/ApiManagerColaboradores";
 import { PDF } from "../interfaces/pdf";
 
 export const downloadPDF = async (token: string, data: PDF) => {
     try {
       // Enviamos los datos al endpoint que genera el PDF
-      const response = await ApiManagerColaboradores.post("/historialComparador/pdf", data, {
+      const response = await ApiManager.post("/historialComparador/pdf", data, {
         responseType: "blob", // importante: recibir archivo
         headers: {
           Authorization: `Bearer ${token}`,

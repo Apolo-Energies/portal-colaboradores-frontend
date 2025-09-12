@@ -1,4 +1,5 @@
-import { ApiManagerColaboradores } from "../ApiManager/ApiManagerColaboradores";
+import { ApiManager } from "../ApiManager/ApiManager";
+// import { ApiManagerColaboradores } from "../ApiManager/ApiManagerColaboradores";
 
 interface AskResponse {
   result: string;
@@ -6,11 +7,11 @@ interface AskResponse {
 
 export const enviarMensajeChatbot = async (mensaje: string): Promise<AskResponse> => {
   try {
-    const response = await ApiManagerColaboradores.post<AskResponse>("/boot/ask", {
+    const response = await ApiManager.post<AskResponse>("/boot/ask", {
       message: mensaje 
     });
 
-    console.log("response: ", response)
+    // console.log("response: ", response)
     return response.data;
   } catch (error) {
     console.error("Error al enviar mensaje al chatbot:", error);

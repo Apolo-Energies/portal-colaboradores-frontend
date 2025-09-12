@@ -26,9 +26,9 @@ export const SidebarContent = () => {
   const logoSrc =
     theme === "dark" ? "/logos/apolologo2.webp" : "/logos/apolologo.webp";
 
-  console.log("rol actual: ", session?.user?.role);
+  // console.log("rol actual: ", session?.user?.role);
   const userRole = session?.user.role || ""; // debe ser "Master" o "Colaborador"
-  console.log("rol actual: ", userRole);
+  // console.log("rol actual: ", userRole);
  
   // Filtramos los items segun el rol del usuario
   const itemsToRender = sidebarItems.filter((item) =>

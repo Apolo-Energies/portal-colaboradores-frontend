@@ -51,7 +51,7 @@ export const registerUser = async (
       email: userData.email,
       role: userData.role
     };
-    console.log("userData: ", userData);
+    // console.log("userData: ", userData);
 
     const response = await ApiManager.post("/user", payload, {
       headers: {

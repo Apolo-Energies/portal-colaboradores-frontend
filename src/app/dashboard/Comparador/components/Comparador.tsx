@@ -9,7 +9,7 @@ import { useLoadingStore } from "@/app/store/ui/loading.store";
 import { useAlertStore } from "@/app/store/ui/alert.store";
 import { subirYProcesarDocumento } from "@/app/services/MatilService/ocr.service";
 import { getTipoArchivo } from "@/utils/typeFile";
-import { MatilData, OcrData } from "../interfaces/matilData";
+import { OcrData } from "../interfaces/matilData";
 import { useSession } from "next-auth/react";
 
 export const Comparador = () => {
@@ -28,7 +28,7 @@ export const Comparador = () => {
 
   const { data: session } = useSession();
 
-  console.log("token", session?.user.token);
+  // console.log("token", session?.user.token);
 
   const handleComparar = async () => {
     if (!file || typeof file === "string") return;
@@ -48,8 +48,8 @@ export const Comparador = () => {
   
       const resultado = await subirYProcesarDocumento(token, file, nombre, tipo);
   
-      console.log("Resultado del procesamiento 1:", resultado);
-      console.log("Resultado del procesamiento 2:", resultado?.result?.ocrData);
+      // console.log("Resultado del procesamiento 1:", resultado);
+      // console.log("Resultado del procesamiento 2:", resultado?.result?.ocrData);
   
       setMatilData(resultado?.result?.ocrData);
       setFileId(resultado?.result?.id);

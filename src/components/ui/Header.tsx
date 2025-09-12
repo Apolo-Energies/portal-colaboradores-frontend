@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import React from "react";
 import { ModeToggle } from "../buttons/ModeToggle";
 import { Button } from "../buttons/button";

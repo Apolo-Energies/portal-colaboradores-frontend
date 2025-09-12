@@ -31,8 +31,8 @@ type FormData = {
 };
 
 export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }: Props) => {
-  console.log("matildData: ", matilData)
-  console.log("matildData: ", matilData?.tarifa)
+  // console.log("matildData: ", matilData)
+  // console.log("matildData: ", matilData?.tarifa)
   const defaultProducto = matilData?.tarifa
     ? PRODUCTS_BY_TARIFF[matilData?.tarifa][0]
     : "Index Base";
@@ -59,7 +59,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   const { comision, calcular } = useCommissionStore();
   const calcularStore = useCalculatorStore();
 
-  console.log("producto selecionado: ", productoSeleccionado);
+  // console.log("producto selecionado: ", productoSeleccionado);
 
   useEffect(() => {
     calcular({
@@ -99,11 +99,11 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
       detalle: matilData?.detalle,
     });
     setResultadoFactura(resultadoFactua ?? undefined);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matilData, productoSeleccionado, precioMedioOmieInput, feeEnergia, feePotencia]);
-  // }, [matilData, productoSeleccionado, precioMedioOmieInput, feeEnergia, feePotencia ]);
 
   const handleEnviarCliente = () => {
-    console.log("Enviando al cliente...");
+    // console.log("Enviando al cliente...");
   };
 
   const handleDescargarPDF = async () => {
@@ -193,7 +193,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
       };
 
       await downloadPDF(token, pdfData); // llama a la función que descarga el PDF
-      console.log("PDF descargado correctamente");
+      // console.log("PDF descargado correctamente");
     } catch (error) {
       console.error("Error al descargar el PDF:", error);
     }

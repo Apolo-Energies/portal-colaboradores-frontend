@@ -53,7 +53,7 @@ export const ModalEditCommission = ({ commission, onClose, open }: Props) => {
       const response = await updateCommission(token, payload);
 
       if (response.status === 200 || response.status === 201) {
-        console.log("Registro exitoso:", response.result);
+        // console.log("Registro exitoso:", response.result);
         showAlert("Comisión agregada correctamente: ", "success");
         reset();
         onClose();

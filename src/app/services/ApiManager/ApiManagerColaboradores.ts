@@ -1,7 +1,7 @@
 import axios from "axios";
 
-console.log("varible local: ", process.env.NEXT_PUBLIC_API_BASE_LOCAL);
-console.log("varible produccion: ", process.env.NEXT_PUBLIC_API_BASE_PROD);
+// console.log("varible local: ", process.env.NEXT_PUBLIC_API_BASE_LOCAL);
+// console.log("varible produccion: ", process.env.NEXT_PUBLIC_API_BASE_PROD);
 
 export const ApiManagerColaboradores = axios.create({
   // baseURL: process.env.NEXT_PUBLIC_ENVIRONMENT_LOCAL,

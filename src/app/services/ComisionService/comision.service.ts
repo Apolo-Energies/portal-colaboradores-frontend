@@ -7,7 +7,7 @@ import { UserCommission } from "@/app/dashboard/Users/interfaces/user";
 
 export const getCommissions = async (token: string): Promise<ApiResponse<Commission[]>> => {
   try {
-    console.log("jwt: ", token);
+    // console.log("jwt: ", token);
     const response = await ApiManager.get("/commission", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -129,7 +129,7 @@ export const updateCommission = async (
   commisionData: Commission
 ): Promise<ApiResponse<Commission>> => {
   try {
-    console.log("data comision: ", commisionData)
+    // console.log("data comision: ", commisionData)
     const response = await ApiManager.put(`/commission/update/${commisionData.id}`, commisionData, {
       headers: {
         Authorization: `Bearer ${token}`, // el Master hace la creación

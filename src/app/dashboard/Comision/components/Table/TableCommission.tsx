@@ -35,6 +35,7 @@ export const TableCommission = () => {
     if (status === 'authenticated') {
       fetchCommission();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.token, reloadFlag]);
 
   const handleEdit =  (commission: Commission) => {

@@ -65,8 +65,8 @@ export function FormModal({ open, onClose }: Props) {
     setView(step);
   };
 
-  const onSubmitFinal = (data: FormData) => {
-    console.log("Formulario completo:", data);
+  const onSubmitFinal = (/*data: FormData*/) => {
+    // console.log("Formulario completo:", data);
     reset();
     onClose();
   };

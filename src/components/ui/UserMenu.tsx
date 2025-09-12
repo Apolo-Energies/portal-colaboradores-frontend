@@ -34,7 +34,7 @@ export const UserMenu = () => {
           <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
             <li
               onClick={() => {
-                console.log("Configuración");
+                // console.log("Configuración");
                 setOpen(false);
               }}
               className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
@@ -44,7 +44,7 @@ export const UserMenu = () => {
             </li>
             <li
               onClick={() => {
-                console.log("Mi perfil");
+                // console.log("Mi perfil");
                 setOpen(false);
               }}
               className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"

@@ -12,7 +12,7 @@ interface Props {
 
 export const TableHistorial = ({ filters }: Props) => {
   const [historials, setHistorials] = useState<HistorialComparador[]>([]);
-  const { loading, setLoading } = useLoadingStore();
+  const { setLoading } = useLoadingStore();
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export const TableHistorial = ({ filters }: Props) => {
           return;
         }
         const response = await getHistorialComparador(session.user.token, filters);
-        console.log("response: ", response);
+        // console.log("response: ", response);
         if (response.status === 200) {
           setHistorials(response.result);
         } else {
@@ -35,6 +35,7 @@ export const TableHistorial = ({ filters }: Props) => {
     };
 
     fetchUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.token, filters]);
 
   const columns: Column<HistorialComparador>[] = [

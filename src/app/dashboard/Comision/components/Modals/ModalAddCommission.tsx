@@ -41,7 +41,7 @@ export const ModalAddCommission = ({onClose, open}: Props) => {
     
     
       const onSubmitFinal = async (data: Commission) => {
-        console.log("Formulario completo:", data);
+        // console.log("Formulario completo:", data);
       
         try {
           const token = session?.user.token;
@@ -51,7 +51,7 @@ export const ModalAddCommission = ({onClose, open}: Props) => {
           const response = await registerCommission(token, data);
     
           if (response.status === 200 || response.status === 201) {
-            console.log("Registro exitoso:", response.result);
+            // console.log("Registro exitoso:", response.result);
             showAlert("Comisión agregada correctamente: ", 'success')
             reset();
             onClose();
