@@ -1,0 +1,22 @@
+{
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(Auth)/RecuperarCuenta/page": "app/(Auth)/RecuperarCuenta/page.js",
+  "/(Auth)/SetPassword/page": "app/(Auth)/SetPassword/page.js",
+  "/(Auth)/page": "app/(Auth)/page.js",
+  "/dashboard/Admin/page": "app/dashboard/Admin/page.js",
+  "/dashboard/AltaRapida/page": "app/dashboard/AltaRapida/page.js",
+  "/dashboard/Comision/page": "app/dashboard/Comision/page.js",
+  "/dashboard/Delegacion/page": "app/dashboard/Delegacion/page.js",
+  "/dashboard/Comparador/page": "app/dashboard/Comparador/page.js",
+  "/dashboard/Liquidaciones/page": "app/dashboard/Liquidaciones/page.js",
+  "/dashboard/HistorialComparador/page": "app/dashboard/HistorialComparador/page.js",
+  "/dashboard/Renovacion/page": "app/dashboard/Renovacion/page.js",
+  "/dashboard/PortalColaboradores/page": "app/dashboard/PortalColaboradores/page.js",
+  "/dashboard/Sips/page": "app/dashboard/Sips/page.js",
+  "/dashboard/Servicios/page": "app/dashboard/Servicios/page.js",
+  "/dashboard/Users/page": "app/dashboard/Users/page.js",
+  "/dashboard/Tarifas/page": "app/dashboard/Tarifas/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
+}

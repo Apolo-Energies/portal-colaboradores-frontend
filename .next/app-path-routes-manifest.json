@@ -1,0 +1,22 @@
+{
+  "/favicon.ico/route": "/favicon.ico",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/_not-found/page": "/_not-found",
+  "/(Auth)/RecuperarCuenta/page": "/RecuperarCuenta",
+  "/(Auth)/SetPassword/page": "/SetPassword",
+  "/(Auth)/page": "/",
+  "/dashboard/Admin/page": "/dashboard/Admin",
+  "/dashboard/AltaRapida/page": "/dashboard/AltaRapida",
+  "/dashboard/Comision/page": "/dashboard/Comision",
+  "/dashboard/Delegacion/page": "/dashboard/Delegacion",
+  "/dashboard/Comparador/page": "/dashboard/Comparador",
+  "/dashboard/Liquidaciones/page": "/dashboard/Liquidaciones",
+  "/dashboard/HistorialComparador/page": "/dashboard/HistorialComparador",
+  "/dashboard/Renovacion/page": "/dashboard/Renovacion",
+  "/dashboard/PortalColaboradores/page": "/dashboard/PortalColaboradores",
+  "/dashboard/Sips/page": "/dashboard/Sips",
+  "/dashboard/Servicios/page": "/dashboard/Servicios",
+  "/dashboard/Users/page": "/dashboard/Users",
+  "/dashboard/Tarifas/page": "/dashboard/Tarifas",
+  "/dashboard/page": "/dashboard"
+}

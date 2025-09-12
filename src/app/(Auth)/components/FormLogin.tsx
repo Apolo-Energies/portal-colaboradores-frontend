@@ -18,7 +18,7 @@ export const FormLogin = () => {
     undefined
   );
 
-  console.log("FormLogin - callbackUrl:", callbackUrl);
+  // console.log("FormLogin - callbackUrl:", callbackUrl);
 
   const { showAlert } = useAlertStore();
 
