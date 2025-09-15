@@ -6,7 +6,7 @@ import { Dialog } from "@/components/Dialogs/Dialog";
 import { Button } from "@/components/buttons/button";
 import { Slider } from "@/components/ui/Slider";
 import { useForm } from "react-hook-form";
-import { getIndexBase, PRODUCTS_BY_TARIFF } from "@/utils/mocks/tarifas";
+import { PRODUCTS_BY_TARIFF } from "@/utils/mocks/tarifas";
 import { Select } from "@/components/Selects/Select";
 import { OcrData } from "../../interfaces/matilData";
 import { Input } from "@/components/Inputs/Input";
