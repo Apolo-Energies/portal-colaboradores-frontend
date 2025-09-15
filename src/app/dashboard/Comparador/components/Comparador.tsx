@@ -91,7 +91,7 @@ export const Comparador = () => {
         onClose={() => setOpenModal(false)}
         matilData={matilData as OcrData | undefined}
         fileId={fileId || ""}
-        token={session?.user.token || ""}
+        token={session?.user.token || ""} 
       />
     </div>
   );

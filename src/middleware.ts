@@ -22,6 +22,12 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
     return NextResponse.redirect(url);
   }
 
+  const expires = typeof session.accessTokenExpires === "number" ? session.accessTokenExpires : 0;
+  if (Date.now() > expires) {
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
   // session.role is of type unknown, so we need to safely extract it
   const userRole =
     typeof session.role === "string" ? session.role.toLowerCase() : undefined;

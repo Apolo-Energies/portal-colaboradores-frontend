@@ -16,6 +16,7 @@ import { FacturaResult } from "@/app/store/calculator/calculator.types";
 import { downloadPDF } from "@/app/services/PDFService/pdf.service";
 import { PDF, Unidad } from "@/app/services/interfaces/pdf";
 import { parseTitular } from "@/utils/paserNameRs";
+import { useCommissionUserStore } from "@/app/store/commission-user/commission-user.store";
 
 interface Props {
   open: boolean;
@@ -51,9 +52,11 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   const [feeEnergia, setFeeEnergia] = useState([0]);
   const [feePotencia, setFeePotencia] = useState([0]);
   const [resultadoFactura, setResultadoFactura] = useState<FacturaResult>();
+  const { commission } = useCommissionUserStore();
 
   const productoSeleccionado = watch("producto");
-  const comisionEnergia = getIndexBase(productoSeleccionado);
+  const comisionEnergia = commission ? commission/100 : 0 ;
+  console.log("commision energia: ", comisionEnergia)
   const precioMedioOmieInput = Number(watch("precioMedio")) || 20;
 
   const { comision, calcular } = useCommissionStore();
@@ -69,7 +72,6 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
       comisionEnergia,
       feePotencia,
       productoSeleccionado,
-      getIndexBase,
     });
   }, [
     matilData,

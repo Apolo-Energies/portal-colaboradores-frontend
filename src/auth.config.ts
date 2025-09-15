@@ -56,6 +56,8 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const claims = jwtDecode<any>((user as any).token);
         // Type guard to ensure user has the expected properties
         if ('id' in user) token.id = user.id;
         if ('email' in user) token.email = user.email;
@@ -63,6 +65,10 @@ export const authConfig: NextAuthConfig = {
         if ('role' in user) token.role = (user as any).role;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ('token' in user) token.accessToken = (user as any).token; // el JWT crudo
+        token.accessTokenExpires = typeof claims.exp === "number" ? claims.exp * 1000 : undefined;
+      }
+      if (typeof token.accessTokenExpires === "number" && Date.now() > token.accessTokenExpires) {
+        return { ...token, error: "AccessTokenExpired" };
       }
       return token;
     },
@@ -74,6 +80,11 @@ export const authConfig: NextAuthConfig = {
         role: token.role as string,
         token: token.accessToken as string,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((token as any).error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session as any).error = (token as any).error;
+      }
       return session;
     },
   },

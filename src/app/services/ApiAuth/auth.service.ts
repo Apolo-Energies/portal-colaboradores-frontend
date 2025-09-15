@@ -48,6 +48,51 @@ export const userLogin = async (email: string, password: string): Promise<ApiRes
   }
 };
 
+export const refreshAccessToken = async (refreshToken: string): Promise<ApiResponse<unknown>> => {
+  if (!refreshToken) {
+    return {
+      isSuccess: false,
+      displayMessage: "Sin token",
+      errorMessages: ["El token no es valido."],
+      result: null,
+      status: 400
+    };
+  }
+
+  try {
+    const response = await ApiManager.post(
+      "/auth/refresh",
+      { refreshToken },
+      { withCredentials: false }
+    );
+
+    return {
+      isSuccess: true,
+      displayMessage: "Se authentico correctamente.",
+      errorMessages: [],
+      result: response.data.result.token,
+      status: response.status
+    };
+  } catch (error) {
+    console.error("Login error:", error);
+    if (axios.isAxiosError(error)) {
+      return {
+        isSuccess: false,
+        displayMessage: error.response?.data?.message ?? "Unknown error",
+        errorMessages: [error.response?.data?.message ?? "Unknown error"],
+        result: null,
+        status: error.response?.status ?? 500,
+      };
+    }
+    return {
+      isSuccess: false,
+      displayMessage: "Unexpected error",
+      errorMessages: ["Unexpected error"],
+      result: null,
+      status: 500,
+    };
+  }
+};
 
 export const resetPassword = async (data: {userId: string; token: string; newPassword: string;}): Promise<ApiResponse<unknown>> => {
   if (!data.userId || !data.token || !data.newPassword) {

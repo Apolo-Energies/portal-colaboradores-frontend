@@ -6,7 +6,6 @@ export const calculateComisionFunction = ({
     feeEnergia,
     comisionEnergia,
     feePotencia,
-    productoSeleccionado
   }: CalcularComisionParams): number => {
     // console.log("DEBUG datos entrada: ", {
     //   matilData,

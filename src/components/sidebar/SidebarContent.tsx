@@ -21,7 +21,8 @@ export const SidebarContent = () => {
       update(); // fuerza recarga de sesión
       setSessionUpdated(true); // marca que ya se ejecutó
     }
-  }, [session, sessionUpdated, update]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const logoSrc =
     theme === "dark" ? "/logos/apolologo2.webp" : "/logos/apolologo.webp";
