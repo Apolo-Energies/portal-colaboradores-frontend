@@ -12,7 +12,7 @@ import {
   // Database,
   ClipboardList,
   Coins,
-  Tags,
+  // Tags,
   
 } from 'lucide-react'
 
@@ -32,7 +32,7 @@ export const sidebarItems = [
 { title: 'Usuarios', url: '/dashboard/Users', icon: Users, roles: ['Master'] },
 { title: 'Historial Comparador', url: '/dashboard/HistorialComparador', icon: ClipboardList, roles: ['Master'] },
 { title: 'Comision', url: '/dashboard/Comision', icon: Coins , roles: ['Master'] },
-{ title: 'Tarifas', url: '/dashboard/Tarifas', icon: Tags, roles: ['Master'] },
+// { title: 'Tarifas', url: '/dashboard/Tarifas', icon: Tags, roles: ['Master'] },
 // { title: 'Inicio', url: '/dashboard', icon: LayoutDashboard, roles: ['master', 'colaborador'] },
 // { title: 'Delegación', url: '/dashboard/Delegacion', icon: Building2, roles: ['master'] },
 // { title: 'Alta Rápida', url: '/dashboard/AltaRapida', icon: UserPlus, roles: ['master'] },
