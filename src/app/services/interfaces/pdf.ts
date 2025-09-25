@@ -1,7 +1,8 @@
-export interface PDF {
-    usuario:   string;
+export interface File {
+    usuario?:   string;
     archivoId: string;
     cups:      string;
+    proveedorId?: number;
     datos:     Datos;
     cliente:   Cliente;
     totales:   Totales;
@@ -13,18 +14,23 @@ export interface Cliente {
     razonSocial: string;
     cif:         string;
     direccion:   string;
+    cp:          string;
+    provincia:   string;
 }
 
 export interface Datos {
-    titulo:           string;
-    tarifa:           string;
-    modalidad:        string;
-    periodo:          string;
-    diasFactura:      number;
-    ahorro:           number;
-    ahorroPorcentaje: number;
-    ahorroAnual:      number;
-    consumoAnual:     number;
+    titulo:             string;
+    tarifa:             string;
+    modalidad:          string;
+    periodo:            string;
+    diasFactura:        number;
+    ahorro:             number;
+    ahorroPorcentaje:   number;
+    ahorroAnual:        number;
+    consumoAnual:       number;
+    precioPromedioOmie: number;
+    feeEnergia:         number;
+    feePotencia:        number;
 }
 
 export interface Linea {

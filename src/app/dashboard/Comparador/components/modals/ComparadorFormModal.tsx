@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Download, Mail } from "lucide-react";
+import { FileDown, FileSpreadsheet } from "lucide-react";
 import { Dialog } from "@/components/Dialogs/Dialog";
 import { Button } from "@/components/buttons/button";
 import { Slider } from "@/components/ui/Slider";
@@ -13,10 +13,12 @@ import { Input } from "@/components/Inputs/Input";
 import { useCommissionStore } from "@/app/store/commission/commission.store";
 import { useCalculatorStore } from "@/app/store/calculator/calculator.stores";
 import { FacturaResult } from "@/app/store/calculator/calculator.types";
-import { downloadPDF } from "@/app/services/PDFService/pdf.service";
-import { PDF, Unidad } from "@/app/services/interfaces/pdf";
+import { downloadPDF } from "@/app/services/FileService/pdf.service";
+import { File, Unidad } from "@/app/services/interfaces/pdf";
 import { parseTitular } from "@/utils/paserNameRs";
 import { useCommissionUserStore } from "@/app/store/commission-user/commission-user.store";
+import { downloadExcel } from "@/app/services/FileService/excel.service";
+import { calcularDias } from "@/utils/dates";
 
 interface Props {
   open: boolean;
@@ -25,6 +27,8 @@ interface Props {
   fileId: string;
   token: string;
 }
+
+type ExportType = "pdf" | "excel";
 
 type FormData = {
   producto: string;
@@ -55,14 +59,12 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   const { commission } = useCommissionUserStore();
 
   const productoSeleccionado = watch("producto");
+  console.log("commision energia: ", productoSeleccionado)
   const comisionEnergia = commission ? commission/100 : 0 ;
-  console.log("commision energia: ", comisionEnergia)
   const precioMedioOmieInput = Number(watch("precioMedio")) || 20;
 
   const { comision, calcular } = useCommissionStore();
   const calcularStore = useCalculatorStore();
-
-  // console.log("producto selecionado: ", productoSeleccionado);
 
   useEffect(() => {
     calcular({
@@ -96,6 +98,8 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
     calcularStore.setPotencia(tarifa, feePotencia[0], productoSeleccionado);
 
     const resultadoFactua = calcularStore.calcularFactura({
+      fecha_inicio: matilData.fecha_inicio,
+      fecha_fin: matilData?.fecha_fin,
       energia: matilData?.energia,
       potencia: matilData?.potencia,
       detalle: matilData?.detalle,
@@ -104,12 +108,9 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matilData, productoSeleccionado, precioMedioOmieInput, feeEnergia, feePotencia]);
 
-  const handleEnviarCliente = () => {
-    // console.log("Enviando al cliente...");
-  };
-
-  const handleDescargarPDF = async () => {
+  const handleDownloadFile = async (type: ExportType) => {
     try {
+      const dias = calcularDias(matilData?.fecha_inicio ?? "", matilData?.fecha_fin ?? "")
       const periodos = resultadoFactura?.periodos || [];
       const { nombreEmpresa, razonSocial } = parseTitular(matilData?.titular);
       const lineas = [
@@ -140,33 +141,39 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
             termino: `POTENCIA P${p.p}`,
             unidad: Unidad.KW,
             valor: p.kw,
-            precioActual: p.kw ? p.potencia_eur / p.kw / 31 : 0,
+            precioActual: p.kw ? p.potencia_eur / p.kw / dias : 0,
             costeActual: p.potencia_eur,
             precioOferta: periodo ? periodo.precioPotenciaOferta : 0,
             costeOferta: periodo ? periodo.costePotencia : 0,
           };
         }),
       ];
-      const pdfData: PDF = {
+      const exportData: File = {
         lineas,
-        archivoId: fileId ,
-        usuario: "usuario_ejemplo",
+        archivoId: fileId,
+        proveedorId: 1, 
+        // usuario: "usuario_ejemplo",
         cups: matilData?.cups || "-",
         datos: {
           titulo: "Comparativa de oferta",
           tarifa: matilData?.tarifa || "-",
           modalidad: productoSeleccionado,
           periodo: matilData?.fecha_fin || "-",
-          diasFactura: 31,
+          diasFactura: dias,
           ahorro: resultadoFactura?.ahorroEstudio || 0,
           ahorroPorcentaje: resultadoFactura?.ahorro_porcent || 0,
           ahorroAnual: resultadoFactura?.ahorroXAnio || 0,
           consumoAnual: resultadoFactura?.totalAnio || 0,
+          precioPromedioOmie: precioMedioOmieInput,
+          feeEnergia: feeEnergia[0],
+          feePotencia: feePotencia[0],
         },
         cliente: {
           cif: matilData?.nif || "-",
           nombreCliente: nombreEmpresa,
           razonSocial: razonSocial || "-",
+          provincia: matilData?.direccion.provincia || "-",
+          cp: matilData?.direccion.cp  || "-",
           direccion:
             `${matilData?.direccion?.tipo_via?.slice(0, 2).toUpperCase()} ${
               matilData?.direccion?.nombre_via
@@ -194,7 +201,11 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
         },
       };
 
-      await downloadPDF(token, pdfData); // llama a la función que descarga el PDF
+      if (type === "pdf") {
+      await downloadPDF(token, exportData);
+    } else {
+      await downloadExcel(token, exportData);
+    }
       // console.log("PDF descargado correctamente");
     } catch (error) {
       console.error("Error al descargar el PDF:", error);
@@ -374,15 +385,15 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
         <div className="flex gap-4 pt-2 border-t border-gray-200">
           <Button
             variant="outline"
-            onClick={handleEnviarCliente}
+            onClick={() => handleDownloadFile("excel")}
             className="flex-1"
           >
-            <Mail className="w-4 h-4 mr-2" />
-            Enviar al cliente
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Descargar Excel
           </Button>
-          <Button onClick={handleDescargarPDF} className="flex-1">
-            <Download className="w-4 h-4 mr-2" />
-            Descargar en PDF
+          <Button onClick={() => handleDownloadFile("pdf")} className="flex-1">
+            <FileDown className="w-4 h-4 mr-2" />
+            Descargar PDF
           </Button>
         </div>
       </div>

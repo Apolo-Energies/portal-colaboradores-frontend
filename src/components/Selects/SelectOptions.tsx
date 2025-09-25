@@ -1,15 +1,26 @@
-import { Commission } from "@/app/dashboard/Comision/interfaces/commission";
 import React from "react";
 
-interface Props {
+interface Option {
+  id: string | number;
+  name: string;
+  percentage?: number; // opcional, solo para comisiones
+}
+
+interface Props<T extends Option> {
   value: string | number;
-  options: Commission[];
+  options: T[];
   placeholder?: string;
   onChange: (value: string) => void;
   className?: string;
 }
 
-export const SelectOptions = ({ options, value, onChange, placeholder = "Seleccionar", className }: Props) => {
+export const SelectOptions = <T extends Option>({
+  options,
+  value,
+  onChange,
+  placeholder = "Seleccionar",
+  className,
+}: Props<T>) => {
   const showPlaceholder = !value;
   return (
     <select

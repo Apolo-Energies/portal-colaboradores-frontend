@@ -6,6 +6,7 @@ import {
 } from "@/utils/mocks/tarifasFijas";
 import { FacturaResult, Periodo, PotenciaResult, ProductoResult } from "./calculator.types";
 import { Detalle } from "@/app/dashboard/Comparador/interfaces/matilData";
+import { calcularDias } from "@/utils/dates";
 
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
 const round3 = (num: number) => Math.round(num * 1000) / 1000;
@@ -104,11 +105,12 @@ export const calcularPotencia = (
 export const calcularFacturaHelper = (
   resultados: ProductoResult,
   resultadosPotencia: { tarifa: string; periodos: PotenciaResult[] },
-  matilData: { energia: { p: number; kwh: number }[]; potencia: { p: number; kw: number }[], detalle: Detalle }
+  matilData: {fecha_inicio: string, fecha_fin: string,  energia: { p: number; kwh: number }[]; potencia: { p: number; kw: number }[], detalle: Detalle }
 ): FacturaResult => {
   const PS: Periodo[] = ["P1","P2","P3","P4","P5","P6"];
   
   const periodos = PS.map((periodo, idx) => {
+    const dias = calcularDias(matilData?.fecha_inicio ?? "", matilData?.fecha_fin)
     const kwh = matilData.energia[idx]?.kwh ?? 0;
     const kw  = matilData.potencia[idx]?.kw ?? 0;
 
@@ -122,8 +124,10 @@ export const calcularFacturaHelper = (
     // console.log("precio energia potencia: ", kw, precioPotenciaOferta)
 
     const costeEnergia  = kwh > 0 ? round6(kwh * precioEnergiaOferta) : 0;
-    const costePotencia = kw  > 0 ? round6(kw  * precioPotenciaOferta * 31) : 0;
+    const costePotencia = kw  > 0 ? round6(kw  * precioPotenciaOferta * dias) : 0;
     const totalPeriodo  = round6(costeEnergia + costePotencia);
+
+    // console.log("dias desde solo ts 1: ", dias);
 
     return { periodo, kwh, kw, precioEnergiaOferta, precioPotenciaOferta, costeEnergia, costePotencia, totalPeriodo };
   }).filter(Boolean) as {
@@ -137,7 +141,7 @@ export const calcularFacturaHelper = (
     totalPeriodo: number;
     
   }[];
-
+  const dias = calcularDias(matilData?.fecha_inicio ?? "", matilData?.fecha_fin)
   const kwhEnergia = round6(periodos.reduce((acc, p) => acc + p.kwh, 0))
   const totalEnergia  = round6(periodos.reduce((acc, p) => acc + p.costeEnergia, 0));
   const totalPotencia = round6(periodos.reduce((acc, p) => acc + p.costePotencia, 0));
@@ -147,7 +151,7 @@ export const calcularFacturaHelper = (
   const total         = round6(subTotal + iva);
   const ahorroEstudio = round3(matilData.detalle.total - total);
   const ahorro_porcent = parseFloat(((ahorroEstudio / matilData.detalle.total) * 100).toFixed(2));
-  const diasFacturados = 31;
+  const diasFacturados = dias;
   const totalAnio = 10 * kwhEnergia;
   const ahorroAnio = (
     (
@@ -161,7 +165,7 @@ export const calcularFacturaHelper = (
   // console.log("total energia 2: ", matilData.detalle.totales_potencia.potencia_eur, totalPotencia,);
   // console.log("total energia 3: ", matilData.detalle.otros);
   // console.log("total energia 4: ", subTotal, total, totalEnergia, totalPotencia);
-  // console.log("periodos: ", periodos);
+  // console.log("dias desde solo ts 2: ", dias);
   const ahorroXAnio = Number(ahorroAnio.toFixed(2));
   return { periodos, totalEnergia, totalPotencia, total, ahorroEstudio, ahorro_porcent, ahorroXAnio, subTotal, impuestoElectrico, iva, totalAnio };
 };

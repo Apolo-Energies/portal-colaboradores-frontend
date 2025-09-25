@@ -23,6 +23,7 @@ interface CalculatorState {
     | null;
   
   calcularFactura: (matilData: {
+    fecha_inicio: string, fecha_fin: string,
     energia: Array<{ p: number; kwh: number }>;
     potencia: Array<{ p: number; kw: number }>;
     detalle: Detalle

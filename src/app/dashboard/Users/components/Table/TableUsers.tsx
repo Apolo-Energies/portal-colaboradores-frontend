@@ -1,15 +1,25 @@
 "use client";
-import { changeUserRole, deactivateUser, getUsers } from "@/app/services/UserService/user.service";
+import {
+  changeUserRole,
+  deactivateUser,
+  getUsers,
+  updateProveedor,
+} from "@/app/services/UserService/user.service";
 import React, { useEffect, useMemo, useState } from "react";
 import { User, UserCommission } from "../../interfaces/user";
 import { useSession } from "next-auth/react";
 import { Column, DataTable } from "@/components/ui/DataTable";
 import { useLoadingStore } from "@/app/store/ui/loading.store";
 import { Commission } from "@/app/dashboard/Comision/interfaces/commission";
-import { assignCommission, getCommissions } from "@/app/services/ComisionService/comision.service";
+import {
+  assignCommission,
+  getCommissions,
+} from "@/app/services/ComisionService/comision.service";
 import { SelectOptions } from "@/components/Selects/SelectOptions";
 import { useAlertStore } from "@/app/store/ui/alert.store";
 import { useReloadStore } from "@/app/store/reloadData/reloadFlag.store";
+import { Proveedor } from "@/app/dashboard/Tarifas/interfaces/proveedor";
+import { getProveedores } from "@/app/services/TarifarioService/proveedor.service";
 
 interface Props {
   filters: {
@@ -22,10 +32,11 @@ interface Props {
 export const TableUsers = ({ filters }: Props) => {
   const [users, setUsers] = useState<User[]>([]);
   const [commissionOptions, setCommissionOptions] = useState<Commission[]>([]);
+  const [providersOptions, setProvidersOptions] = useState<Proveedor[]>([]);
   const { data: session /*status*/ } = useSession();
   const { setLoading } = useLoadingStore();
   const { showAlert } = useAlertStore();
-  const {reloadFlag} = useReloadStore();
+  const { reloadFlag } = useReloadStore();
 
   // console.log("token: ", session?.user.token);
   useEffect(() => {
@@ -43,6 +54,11 @@ export const TableUsers = ({ filters }: Props) => {
         const commissionsResponse = await getCommissions(session.user.token);
         if (commissionsResponse.status === 200)
           setCommissionOptions(commissionsResponse.result);
+
+        // Traer proveedores
+        const providersResponse = await getProveedores(session.user.token);
+        if (commissionsResponse.status === 200)
+          setProvidersOptions(providersResponse.result);
       } catch (error) {
         console.error("Error cargando datos:", error);
       } finally {
@@ -51,7 +67,7 @@ export const TableUsers = ({ filters }: Props) => {
     };
 
     fetchUsers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.token, reloadFlag]);
 
   // console.log("usuarios: ", users);
@@ -70,20 +86,42 @@ export const TableUsers = ({ filters }: Props) => {
     });
   }, [users, filters]);
 
-
   const registerComision = async (userId: string, commissionId: string) => {
     try {
       if (!userId || !commissionId || !session?.user.token) return;
       // Llamada al backend para asignar la comisión
-      const response = await assignCommission(session.user.token, { userId, commissionId });
+      const response = await assignCommission(session.user.token, {
+        userId,
+        commissionId,
+      });
       if (response.status === 200) {
         showAlert("Comisión actualizada correctamente", "success");
       } else {
         showAlert("Error al actualizar la comisión", "error");
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       showAlert("Error al actualizar la comisión", "error");
+    }
+  };
+
+  const registerProvider = async (userId: string, proveedorId: number) => {
+    try {
+      if (!userId || !proveedorId || !session?.user.token) return;
+      // Llamada al backend para asignar la comisión
+      const response = await updateProveedor(
+        session.user.token,
+        userId,
+        proveedorId
+      );
+      if (response.status === 200) {
+        showAlert("Proveedor actualizada correctamente", "success");
+      } else {
+        showAlert("Error al actualizar la proveedor", "error");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showAlert("Error al actualizar la proveedor", "error");
     }
   };
 
@@ -115,16 +153,42 @@ export const TableUsers = ({ filters }: Props) => {
     );
     registerComision(userId, commissionId);
   };
-  
+
+  const handleProviderChange = (userId: string, providerId: number) => {
+    const selected = providersOptions.find((c) => c.id === providerId);
+    if (!selected) return;
+
+    setUsers(
+      users.map((user) =>
+        user.id === userId
+          ? {
+              ...user,
+              proveedorId: selected.id,
+              commissionId: selected.id,
+            }
+          : user
+      )
+    );
+
+    // Llamada al backend para persistir el cambio de proveedor
+    registerProvider(userId, providerId);
+  };
+
   const updateUserRole = async (userId: string, newRole: number) => {
     if (!session?.user.token) return;
-  
+
     try {
-      const response = await changeUserRole(session.user.token, userId, newRole);
+      const response = await changeUserRole(
+        session.user.token,
+        userId,
+        newRole
+      );
       if (response.isSuccess) {
         showAlert("Rol actualizado correctamente", "success");
         // Actualizamos estado local para reflejar el cambio en la UI
-        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        setUsers(
+          users.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+        );
       } else {
         showAlert("Error al actualizar el rol", "error");
       }
@@ -136,13 +200,21 @@ export const TableUsers = ({ filters }: Props) => {
 
   const updateUserStatus = async (userId: string, isActive: boolean) => {
     if (!session?.user.token) return;
-  
+
     try {
-      const response = await deactivateUser(session.user.token, userId, isActive);
+      const response = await deactivateUser(
+        session.user.token,
+        userId,
+        isActive
+      );
       if (response.isSuccess) {
         showAlert("Estado actualizado correctamente", "success");
         // Actualizamos estado local
-        setUsers(users.map(u => u.id === userId ? { ...u, estadoActivo: isActive } : u));
+        setUsers(
+          users.map((u) =>
+            u.id === userId ? { ...u, estadoActivo: isActive } : u
+          )
+        );
       } else {
         showAlert("Error al actualizar el estado", "error");
       }
@@ -151,8 +223,7 @@ export const TableUsers = ({ filters }: Props) => {
       console.error(error);
     }
   };
-  
-  
+
   const columns: Column<User>[] = [
     {
       key: "nombreCompleto",
@@ -180,18 +251,22 @@ export const TableUsers = ({ filters }: Props) => {
         <select
           value={user.role.toString()}
           onChange={(e) =>
-            updateUserRole(user.id as string, parseInt(e.target.value) as number)
+            updateUserRole(
+              user.id as string,
+              parseInt(e.target.value) as number
+            )
           }
           className={`text-xs font-medium rounded-full px-3 py-1 border-0 ${
-            user.role === 1 ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+            user.role === 1
+              ? "bg-purple-100 text-purple-800"
+              : "bg-blue-100 text-blue-800"
           }`}
-          
         >
           <option value={1}>Master</option>
           <option value={2}>Colaborador</option>
         </select>
       ),
-    },    
+    },
     {
       key: "estadoActivo",
       label: "Estado",
@@ -219,10 +294,29 @@ export const TableUsers = ({ filters }: Props) => {
       align: "center",
       render: (user: User) => (
         <SelectOptions
-          // users[3]?.userCommissions[0].commissionType.name, "porcentaje: ", users[3]?.userCommissions[0].commissionType.percentage
           value={user.userCommissions?.[0]?.commissionType?.id ?? ""}
-          options={commissionOptions}
+          options={commissionOptions.map((c) => ({
+            id: c.id ?? "", 
+            name: c.name
+          }))}
           onChange={(val) => handleCommissionChange(user.id as string, val)}
+        />
+      ),
+    },    
+    {
+      key: "providers",
+      label: "Proveedor",
+      align: "center",
+      render: (user: User) => (
+        <SelectOptions
+          value={user.proveedorId ?? ""}
+          options={providersOptions.map((p) => ({
+            id: p.id,
+            name: p.nombre,
+          }))}
+          onChange={(val) =>
+            handleProviderChange(user.id as string, Number(val))
+          }
         />
       ),
     },

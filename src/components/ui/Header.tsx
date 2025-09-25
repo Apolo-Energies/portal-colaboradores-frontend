@@ -20,7 +20,7 @@ export const Header = () => {
       try {
         const res = await getCommissionUser(session.user.token, session.user.id);
         if (res.isSuccess) {
-          setCommission(res.result.commissionType.percentage);
+          setCommission(res.result?.commissionType.percentage);
           console.log(res.result)
         } else {
           console.error("Error fetching commission:", res.displayMessage);

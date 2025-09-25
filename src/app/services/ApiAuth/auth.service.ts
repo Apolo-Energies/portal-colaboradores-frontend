@@ -20,11 +20,12 @@ export const userLogin = async (email: string, password: string): Promise<ApiRes
       { withCredentials: false } // opcional si no usas cookies
     );
 
+    // console.log("response: ", response.data)
     return {
       isSuccess: true,
       displayMessage: "Login exitoso",
       errorMessages: [],
-      result: response.data.result.token,
+      result: response?.data?.result?.token,
       status: response.status
     };
   } catch (error) {

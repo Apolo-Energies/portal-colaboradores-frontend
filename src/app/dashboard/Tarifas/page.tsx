@@ -1,8 +1,5 @@
+import { TarifarioComponent } from "./components/TarifarioComponent/TarifarioComponent";
 
 export default function TarifasPage() {
-  return (
-    <div>
-      <h1>Hello Tarifas Page</h1>
-    </div>
-  );
+  return <TarifarioComponent />;
 }

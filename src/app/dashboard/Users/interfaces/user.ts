@@ -4,6 +4,7 @@ export interface User {
     email:           string;
     estadoActivo:    boolean;
     role:            number;
+    proveedorId:     number;
     userCommissions?: UserCommission[];
 }
 
