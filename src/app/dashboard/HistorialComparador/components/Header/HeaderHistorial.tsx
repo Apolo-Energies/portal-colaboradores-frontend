@@ -6,13 +6,13 @@ import { Search, X } from "lucide-react";
 interface Props {
   filters: HistorialFilters;
   setFilters: (filters: HistorialFilters) => void;
-  onSearch: () => void;
+  onSearch: (filters?: HistorialFilters) => void;
 }
 
 export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
   const handleClear = () => {
     setFilters({});
-    onSearch();
+    onSearch({});
   };
 
   // console.log("filtros: ", filters);
@@ -52,7 +52,7 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
         <div className="flex items-center justify-around">
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center justify-center gap-1 cursor-pointer"
-            onClick={onSearch}
+            onClick={() => onSearch}
           >
             <Search size={14} />
             Buscar
