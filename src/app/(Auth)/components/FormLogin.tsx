@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { RingLoader } from "react-spinners";
+import { MoonLoader } from "react-spinners";
 import { useSearchParams } from "next/navigation";
 import { authenticate } from "@/actions";
 import { useAlertStore } from "@/app/store/ui/alert.store";
@@ -18,7 +18,6 @@ export const FormLogin = () => {
     undefined
   );
 
-  // console.log("FormLogin - callbackUrl:", callbackUrl);
 
   const { showAlert } = useAlertStore();
 
@@ -93,7 +92,7 @@ export const FormLogin = () => {
         className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-800"
       >
         {isPending ? (
-          <RingLoader size={22} color="#ffffff" />
+          <MoonLoader size={22} color="#03116d" />
         ) : (
           "Iniciar Sesión"
         )}

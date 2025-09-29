@@ -15,7 +15,6 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
     onSearch({});
   };
 
-  // console.log("filtros: ", filters);
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
       <div className="flex justify-between items-center mb-6">

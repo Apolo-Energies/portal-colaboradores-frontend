@@ -38,7 +38,6 @@ export const TableUsers = ({ filters }: Props) => {
   const { showAlert } = useAlertStore();
   const { reloadFlag } = useReloadStore();
 
-  // console.log("token: ", session?.user.token);
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
@@ -69,8 +68,6 @@ export const TableUsers = ({ filters }: Props) => {
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.token, reloadFlag]);
-
-  // console.log("usuarios: ", users);
 
   const filteredUsers = useMemo(() => {
     return users?.filter((user) => {

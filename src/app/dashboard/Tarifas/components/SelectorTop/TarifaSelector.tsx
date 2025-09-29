@@ -31,20 +31,21 @@ export const TarifaSelector = ({
     selectedTarifaObj?.productos && selectedTarifaObj.productos.length > 0 && setSelectedProducto;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-6">
+    <div className="bg-card border-r border-border rounded-lg shadow-sm p-4 mb-6">
       <div className={hasProductos ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "grid grid-cols-1"}>
         {/* Selector de tarifa */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Seleccionar Tarifa
           </label>
           <select
             value={selectedTarifa}
             onChange={(e) => {
               setSelectedTarifa(e.target.value);
-              setSelectedProducto && setSelectedProducto(""); // reiniciamos producto si existe setter
+              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+              setSelectedProducto && setSelectedProducto("");
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border bg-input border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {showAll && <option value="all">Mostrar todos</option>}
             {options.map((option) => (
@@ -58,13 +59,13 @@ export const TarifaSelector = ({
         {/* Selector de producto (si existe) */}
         {hasProductos && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Seleccionar Producto
             </label>
             <select
               value={selectedProducto}
               onChange={(e) => setSelectedProducto!(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border bg-input border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Selecciona un producto</option>
               {selectedTarifaObj!.productos!.map((producto) => (

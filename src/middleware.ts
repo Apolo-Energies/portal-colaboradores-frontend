@@ -8,16 +8,9 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
     cookieName: '__Secure-authjs.session-token',
   });
 
-  // console.log("Cookies:", req.cookies.getAll());
-
-  // console.log("🔐 secret: ", process.env.NEXTAUTH_SECRET);
   const url = req.nextUrl;
 
-  // console.log("⏩ URL:", url.pathname);
-  // console.log("🧠 SESSION:", session);
-
   if (!session) {
-    // console.log("❌ NO SESSION. Redirigiendo a /");
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
@@ -32,14 +25,11 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
   const userRole =
     typeof session.role === "string" ? session.role.toLowerCase() : undefined;
 
-  // console.log("rol usuario: ", userRole)
-
   if (!userRole) {
     // si no tiene rol valido, también lo enviamos al login
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
-  // console.log("✅ SESSION DETECTADA. Pasando...");
 
   if (userRole === "colaborador") {
     if (!url.pathname.startsWith("/dashboard/Comparador")) {
@@ -59,7 +49,7 @@ export default async function middleware(req: NextRequest): Promise<NextResponse
   return NextResponse.next();
 }
 
-// ✅ Solo aplica middleware a rutas dentro de /dashboard
+// Solo aplica middleware a rutas dentro de /dashboard
 export const config = {
   matcher: ["/dashboard", "/dashboard/:path*"],
 };

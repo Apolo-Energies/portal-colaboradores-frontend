@@ -51,11 +51,10 @@ export const registerUser = async (
       email: userData.email,
       role: userData.role
     };
-    // console.log("userData: ", userData);
 
     const response = await ApiManager.post("/user", payload, {
       headers: {
-        Authorization: `Bearer ${token}`, // el Master hace la creación
+        Authorization: `Bearer ${token}`, 
       },
       withCredentials: false,
     });

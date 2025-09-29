@@ -66,7 +66,6 @@ export function FormModal({ open, onClose }: Props) {
   };
 
   const onSubmitFinal = (/*data: FormData*/) => {
-    // console.log("Formulario completo:", data);
     reset();
     onClose();
   };

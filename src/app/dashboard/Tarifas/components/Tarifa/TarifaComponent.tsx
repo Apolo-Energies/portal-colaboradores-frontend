@@ -1,56 +1,161 @@
 import React, { useState } from "react";
 import { PeriodoCard } from "../Cards/PeriodoCard";
-import { Producto, Tarifa } from "../../interfaces/proveedor";
+import { Producto, Tarifa, ProductoPeriodo } from "../../interfaces/proveedor";
 import { getPeriodColor } from "@/utils/tarifario/formatsColors";
-import { Calculator, Plus } from "lucide-react";
+import { Calculator } from "lucide-react";
 import { TarifaSelector } from "../SelectorTop/TarifaSelector";
+import {
+  createProductoPeriodo,
+  deleteProductoPeriodo,
+  updateProductoPeriodo,
+} from "@/app/services/TarifarioService/producto-periodo.service";
+import { useAlertStore } from "@/app/store/ui/alert.store";
+import { useTarifaStore } from "@/app/store/tarifario/tarifa.store";
 
 interface Props {
-  tarifas: Tarifa[];
-  proveedorId: number;
+  token?: string;
 }
 
-export const TarifaComponent = ({ tarifas }: Props) => {
+export const TarifaComponent = ({ token }: Props) => {
   const [selectedTarifa, setSelectedTarifa] = useState<string>("all");
   const [selectedProducto, setSelectedProducto] = useState<string>("");
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
-  const [newPeriodoForProducto, setNewPeriodoForProducto] = useState<
-    number | null
-  >(null);
+  const { setTarifas, tarifas } = useTarifaStore();
 
-  const handleEditStart = (cellId: string, value: number): void => {
+  const { showAlert } = useAlertStore();
+
+  const handleEditStart = (cellId: string, value: number) => {
     setEditingCell(cellId);
-    setEditValue(value.toString());
+    setEditValue(value?.toString() ?? "");
   };
 
-  const handleEditCancel = (): void => {
+  const handleEditCancel = () => {
     setEditingCell(null);
     setEditValue("");
-    setNewPeriodoForProducto(null);
   };
 
-  const handleEditSave = (): void => {
-    // Aquí se llamaría al API para guardar cambios
+  const handleEditSave = async (periodo: ProductoPeriodo) => {
+    if (!token) {
+      showAlert("Sin token", "error");
+      return;
+    }
+
+    const valor = parseFloat(editValue);
+    if (isNaN(valor)) return;
+
+    try {
+      if (periodo.id === -1) {
+        // Crear periodo
+        const response = await createProductoPeriodo(token, {
+          productoId: periodo.productoId,
+          periodo: periodo.periodo,
+          valor,
+          producto: null,
+        });
+
+        if (response.isSuccess) {
+          showAlert("Período agregado correctamente", "success");
+          setTarifas(
+            tarifas.map((tarifa) => ({
+              ...tarifa,
+              productos: tarifa.productos.map((prod) =>
+                prod.id === periodo.productoId
+                  ? {
+                      ...prod,
+                      periodos: [
+                        ...prod.periodos.filter(
+                          (p) => p.periodo !== periodo.periodo
+                        ),
+                        { ...periodo, id: response.result.id, valor },
+                      ],
+                    }
+                  : prod
+              ),
+            }))
+          );
+        }
+      } else {
+        // Actualizar periodo
+        const response = await updateProductoPeriodo(token, periodo.id, {
+          ...periodo,
+          valor,
+        });
+
+        if (response.isSuccess) {
+          showAlert("Período actualizado correctamente", "success");
+          setTarifas(
+            tarifas.map((tarifa) => ({
+              ...tarifa,
+              productos: tarifa.productos.map((prod) =>
+                prod.id === periodo.productoId
+                  ? {
+                      ...prod,
+                      periodos: prod.periodos.map((p) =>
+                        p.id === periodo.id ? { ...p, valor } : p
+                      ),
+                    }
+                  : prod
+              ),
+            }))
+          );
+        }
+      }
+    } catch (error) {
+      showAlert("Error al guardar período", "error");
+      console.error(error);
+    }
+
     setEditingCell(null);
     setEditValue("");
-    setNewPeriodoForProducto(null); // cerrar nuevo periodo temporal si existía
   };
 
+  // Eliminar periodo
+  const handleDeletePeriodo = async (periodo: ProductoPeriodo) => {
+    if (!periodo.id || !token) {
+      showAlert("No se puede eliminar o no existe token", "error");
+      return;
+    }
+
+    try {
+      const response = await deleteProductoPeriodo(token, periodo.id);
+      if (response.isSuccess) {
+        showAlert("Período eliminado correctamente", "success");
+        setTarifas(
+          tarifas.map((tarifa) => ({
+            ...tarifa,
+            productos: tarifa.productos.map((prod) =>
+              prod.id === periodo.productoId
+                ? {
+                    ...prod,
+                    periodos: prod.periodos.filter((p) => p.id !== periodo.id),
+                  }
+                : prod
+            ),
+          }))
+        );
+      }
+    } catch (error) {
+      showAlert("Error al eliminar período", "error");
+      console.error(error);
+    }
+    setEditingCell(null);
+    setEditValue("");
+  };
+
+  // Filtrar datos
   const getFilteredData = (): Tarifa[] => {
     let result = tarifas;
 
-    // Filtrar por tarifa
     if (selectedTarifa !== "all" && selectedTarifa !== "") {
-      result = result.filter((item) => item.id.toString() === selectedTarifa);
+      result = result.filter((t) => t.id.toString() === selectedTarifa);
     }
 
-    // Filtrar por producto
     if (selectedProducto !== "" && selectedProducto !== "all") {
-      result = result.map((tarifa) => ({
-        ...tarifa,
-        productos: tarifa.productos.filter(
+      result = result.map((t) => ({
+        ...t,
+        productos: t.productos.filter(
           (p) => p.id.toString() === selectedProducto
         ),
       }));
@@ -59,38 +164,25 @@ export const TarifaComponent = ({ tarifas }: Props) => {
     return result;
   };
 
+  // Preparar datos de períodos
   const preparePeriodoData = (producto: Producto) => {
-    const periodosOrdenados = [...producto.periodos].sort(
-      (a, b) => a.periodo - b.periodo
-    );
-    const maxPeriodo = periodosOrdenados.length
-      ? periodosOrdenados[periodosOrdenados.length - 1].periodo
-      : 0;
-    const showNewPeriodo = newPeriodoForProducto === producto.id;
+    const periodosMap = new Map(producto.periodos.map((p) => [p.periodo, p]));
+    return Array.from({ length: 6 }, (_, i) => {
+      const num = i + 1;
+      const periodo: ProductoPeriodo = periodosMap.get(num) ?? {
+        id: -1,
+        productoId: producto.id,
+        periodo: num,
+        valor: null,
+        producto: null,
+      };
 
-    const periodosRender = periodosOrdenados.map((periodo) => ({
-      periodo,
-      cellId: `producto-${producto.id}-${periodo.periodo}`,
-      isEditing: editingCell === `producto-${producto.id}-${periodo.periodo}`,
-    }));
-
-    const newPeriodoRender = showNewPeriodo
-      ? {
-          periodo: {
-            id: -1,
-            productoId: producto.id,
-            periodo: maxPeriodo + 1,
-            valor: 0,
-            producto: null,
-          },
-          cellId: `producto-${producto.id}-nuevo`,
-          isEditing: true,
-        }
-      : null;
-
-      const allowAddButton = maxPeriodo < 6;
-
-    return { periodosRender, newPeriodoRender, maxPeriodo, showNewPeriodo, allowAddButton  };
+      return {
+        periodo,
+        cellId: `producto-${producto.id}-${num}`,
+        isEditing: editingCell === `producto-${producto.id}-${num}`,
+      };
+    });
   };
 
   return (
@@ -103,56 +195,43 @@ export const TarifaComponent = ({ tarifas }: Props) => {
         options={tarifas.map((t) => ({
           id: t.id,
           codigo: t.codigo,
-          productos: t.productos.map((p) => ({
-            id: p.id,
-            nombre: p.nombre,
-          })),
+          productos: t.productos.map((p) => ({ id: p.id, nombre: p.nombre })),
         }))}
-        showAll={true}
+        showAll
       />
 
       {selectedTarifa && (
         <div className="space-y-6">
           {getFilteredData().map((tarifa) =>
             tarifa.productos.map((producto) => {
-              const {
-                periodosRender,
-                newPeriodoRender,
-                maxPeriodo,
-                showNewPeriodo,
-                allowAddButton 
-              } = preparePeriodoData(producto);
+              const periodosRender = preparePeriodoData(producto);
 
               return (
                 <div
                   key={producto.id}
-                  className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+                  className="bg-card rounded-lg border border-border shadow-sm overflow-hidden"
                 >
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-700 rounded-lg">
-                        <Calculator className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {tarifa.codigo}
-                        </h3>
-                        <span className="text-sm text-gray-600">
-                          {producto.nombre}
-                        </span>
-                      </div>
+                  <div className="p-6 border-b border-border flex items-center gap-3">
+                    <Calculator className="w-6 h-6 text-sidebar-selected-text" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {tarifa.codigo}
+                      </h3>
+                      <span className="text-sm text-muted-foreground">
+                        {producto.nombre}
+                      </span>
                     </div>
                   </div>
 
                   <div className="p-6">
-                    <p className="text-sm font-semibold text-gray-700 mb-4">
+                    <p className="text-sm font-semibold text-muted-foreground mb-4">
                       Períodos (€/kWh)
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {periodosRender.map(({ periodo, cellId, isEditing }) => (
                         <div
-                          key={periodo.id}
-                          className="text-center p-4 bg-gray-50 rounded-lg group hover:bg-gray-100 transition-all duration-200 border border-gray-100"
+                          key={cellId}
+                          className="text-center p-4 bg-body rounded-lg group hover:bg-card transition-all duration-200 border border-border relative"
                         >
                           <div
                             className={`inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-3 border ${getPeriodColor(
@@ -169,48 +248,15 @@ export const TarifaComponent = ({ tarifas }: Props) => {
                             editValue={editValue}
                             onEditStart={handleEditStart}
                             onEditChange={setEditValue}
-                            onEditSave={handleEditSave}
+                            onEditSave={() => handleEditSave(periodo)}
                             onEditCancel={handleEditCancel}
+                            onDelete={(p) =>
+                              handleDeletePeriodo(p as ProductoPeriodo)
+                            }
                             decimals={6}
-                            unit="€/kWh"
                           />
                         </div>
                       ))}
-
-                      {newPeriodoRender && (
-                        <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed border-blue-400">
-                          <div
-                            className={`inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-3 border ${getPeriodColor(
-                              maxPeriodo + 1
-                            )}`}
-                          >
-                            P{maxPeriodo + 1}
-                          </div>
-
-                          <PeriodoCard
-                            periodo={newPeriodoRender.periodo}
-                            cellId={newPeriodoRender.cellId}
-                            isEditing={newPeriodoRender.isEditing}
-                            editValue={editValue}
-                            onEditStart={handleEditStart}
-                            onEditChange={setEditValue}
-                            onEditSave={handleEditSave}
-                            onEditCancel={handleEditCancel}
-                            decimals={6}
-                            unit="€/kWh"
-                          />
-                        </div>
-                      )}
-
-                      {allowAddButton && !showNewPeriodo && (
-                        <button
-                          onClick={() => setNewPeriodoForProducto(producto.id)}
-                          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition"
-                        >
-                          <Plus className="w-6 h-6 mb-2" />
-                          <span className="text-sm">Añadir periodo</span>
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -23,7 +23,6 @@ export const TableHistorial = ({ filters }: Props) => {
           return;
         }
         const response = await getHistorialComparador(session.user.token, filters);
-        // console.log("response: ", response);
         if (response.status === 200) {
           setHistorials(response.result);
         } else {

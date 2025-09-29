@@ -16,12 +16,9 @@ export const getBaseValue = (
   producto: string,
   periodo: Periodo
 ): number => {
-  // console.log("DEBBUG datos: ", { tarifa, producto, periodo });
   const prod = TARIFF_MOCKS.find(
     (p) => p.tarifa === tarifa && p.modalidad === producto
   );
-  // console.log("DEBUGG producto obtenido 1: ", prod)
-  // console.log("DEBUGG producto obtenido 2: ", prod?.periodos[periodo])
   return prod?.periodos[periodo] ?? 0;
 };
 
@@ -30,7 +27,7 @@ export const getRepartoOmie = (tarifa: string, periodo: Periodo): number => {
     return REPARTO_2_0.datos[0].periodos[periodo] ?? 0;
   }
   const mock = REPARTO_3_0_6_1.find((r) => r.tarifa === tarifa);
-  // console.log("DEBBUG mok: ", mock)
+  
   return mock?.datos[0].periodos[periodo] ?? 0;
 };
 
@@ -90,11 +87,6 @@ export const calcularPotencia = (
   const potenciaBase = getPotenciaBOE(tarifa, periodo);
   const potenciaOferta = modalidad === "Index Promo" ? potenciaBase : potenciaBase + feePotencia / 365;
 
-  // console.log("DEBBUG resultados potencia: ", {
-  //   base: round6(potenciaBase),
-  //   oferta: round6(potenciaOferta),
-  // });
-
   return {
     base: round6(potenciaBase),
     oferta: round6(potenciaOferta),
@@ -120,14 +112,10 @@ export const calcularFacturaHelper = (
     const precioEnergiaOferta   = resultados.periodos[idx]?.oferta ?? 0;
     const precioPotenciaOferta  = resultadosPotencia.periodos[idx]?.ofertaPotencia ?? 0;
 
-    // console.log("precio energia potencia: ", kwh, precioEnergiaOferta)
-    // console.log("precio energia potencia: ", kw, precioPotenciaOferta)
-
     const costeEnergia  = kwh > 0 ? round6(kwh * precioEnergiaOferta) : 0;
     const costePotencia = kw  > 0 ? round6(kw  * precioPotenciaOferta * dias) : 0;
     const totalPeriodo  = round6(costeEnergia + costePotencia);
 
-    // console.log("dias desde solo ts 1: ", dias);
 
     return { periodo, kwh, kw, precioEnergiaOferta, precioPotenciaOferta, costeEnergia, costePotencia, totalPeriodo };
   }).filter(Boolean) as {
@@ -161,11 +149,6 @@ export const calcularFacturaHelper = (
     ) * (1 + 0.0511269632 + 0.21)
   );
   
-  // console.log("total energia 1: ", matilData.detalle.totales_energia.activa_eur, totalEnergia, kwhEnergia);
-  // console.log("total energia 2: ", matilData.detalle.totales_potencia.potencia_eur, totalPotencia,);
-  // console.log("total energia 3: ", matilData.detalle.otros);
-  // console.log("total energia 4: ", subTotal, total, totalEnergia, totalPotencia);
-  // console.log("dias desde solo ts 2: ", dias);
   const ahorroXAnio = Number(ahorroAnio.toFixed(2));
   return { periodos, totalEnergia, totalPotencia, total, ahorroEstudio, ahorro_porcent, ahorroXAnio, subTotal, impuestoElectrico, iva, totalAnio };
 };

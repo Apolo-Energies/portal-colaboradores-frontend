@@ -30,36 +30,29 @@ export const NavigatorTop = ({ setSelectedTab, selectedTab }: Props) => {
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-1">
-      <div className="flex space-x-1">
+    <div className="bg-card border-r border-border rounded-lg border shadow-sm p-1">
+      <div className="flex space-x-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setSelectedTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center cursor-pointer gap-2 px-4 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
                 selectedTab === tab.id
-                  ? "bg-blue-400 text-white shadow-md"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               }`}
             >
-              <Icon
+              <Icon 
                 size={14}
-                className={
-                  selectedTab === tab.id ? "text-white" : "text-blue-700"
-                }
+                className={`w-4 h-4 ${
+                  selectedTab
+                    ? "text-sidebar-selected-text"
+                    : "text-sidebar-text"
+                }`}
               />
               {tab.name}
-              <span
-                className={`px-2 py-0.5 text-xs font-medium rounded-md ${
-                  selectedTab === tab.id
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {tab.count}
-              </span>
             </button>
           );
         })}

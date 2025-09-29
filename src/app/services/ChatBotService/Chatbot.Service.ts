@@ -11,7 +11,6 @@ export const enviarMensajeChatbot = async (mensaje: string): Promise<AskResponse
       message: mensaje 
     });
 
-    // console.log("response: ", response)
     return response.data;
   } catch (error) {
     console.error("Error al enviar mensaje al chatbot:", error);

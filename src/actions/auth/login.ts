@@ -8,10 +8,8 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    // console.log("data: ", formData);
 
     await signIn("credentials", formData);
-    // console.log("res: ", res);
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -31,7 +29,6 @@ export const login = async (email: string, password: string): Promise<unknown> =
     return { ok: true };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error: unknown) {
-    // console.log("Error: ", error);
     return {
       ok: false,
       message: "No se pudo iniciar sesion.",

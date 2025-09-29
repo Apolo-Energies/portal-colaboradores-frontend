@@ -36,8 +36,6 @@ type FormData = {
 };
 
 export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }: Props) => {
-  // console.log("matildData: ", matilData)
-  // console.log("matildData: ", matilData?.tarifa)
   const defaultProducto = matilData?.tarifa
     ? PRODUCTS_BY_TARIFF[matilData?.tarifa][0]
     : "Index Base";
@@ -59,7 +57,6 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   const { commission } = useCommissionUserStore();
 
   const productoSeleccionado = watch("producto");
-  console.log("commision energia: ", productoSeleccionado)
   const comisionEnergia = commission ? commission/100 : 0 ;
   const precioMedioOmieInput = Number(watch("precioMedio")) || 20;
 
@@ -206,7 +203,6 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
     } else {
       await downloadExcel(token, exportData);
     }
-      // console.log("PDF descargado correctamente");
     } catch (error) {
       console.error("Error al descargar el PDF:", error);
     }

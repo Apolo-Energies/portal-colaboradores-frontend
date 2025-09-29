@@ -24,7 +24,6 @@ export const authConfig: NextAuthConfig = {
 
         try {
           const response = await userLogin(email, password);
-          console.log("respuesta desde el backend: ", response)
 
           if (!response || response.status !== 200) {
             console.error("Credenciales incorrectas: ", response);

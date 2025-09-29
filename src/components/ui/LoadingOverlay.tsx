@@ -2,7 +2,7 @@
 
 import { useLoadingStore } from '@/app/store/ui/loading.store';
 import React from 'react'
-import { RingLoader } from 'react-spinners';
+import { MoonLoader } from 'react-spinners';
 
 export const LoadingOverlay = () => {
   const loading = useLoadingStore((state) => state.loading);
@@ -12,7 +12,7 @@ export const LoadingOverlay = () => {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
       <div className="flex flex-col items-center space-y-4">
-        <RingLoader color="#22d3ee" size={90} />
+        <MoonLoader color="#03116d" size={90} />
         <p className="text-white text-sm">Cargando...</p>
       </div>
     </div>

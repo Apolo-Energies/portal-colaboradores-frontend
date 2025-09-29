@@ -3,7 +3,6 @@ import { ApiManager } from "../ApiManager/ApiManager";
 
 export const subirYProcesarDocumento = async (token :string, file: File, nombre: string, tipo: number) => {
   try {
-    // console.log("token desde el service: ", token)
     const formData = new FormData();
     formData.append("Archivo", file);
     formData.append("Nombre", nombre);

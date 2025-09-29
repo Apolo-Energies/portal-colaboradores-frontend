@@ -28,8 +28,6 @@ export const Comparador = () => {
 
   const { data: session } = useSession();
 
-  // console.log("token", session?.user.token);
-
   const handleComparar = async () => {
     if (!file || typeof file === "string") return;
   
@@ -47,9 +45,6 @@ export const Comparador = () => {
       }
   
       const resultado = await subirYProcesarDocumento(token, file, nombre, tipo);
-  
-      // console.log("Resultado del procesamiento 1:", resultado);
-      // console.log("Resultado del procesamiento 2:", resultado?.result?.ocrData);
   
       setMatilData(resultado?.result?.ocrData);
       setFileId(resultado?.result?.id);

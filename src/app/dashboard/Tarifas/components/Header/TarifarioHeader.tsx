@@ -1,11 +1,11 @@
-import { AlertCircle, Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import React from "react";
 import { downloadExcelByProvId } from "../../../../services/FileService/excel.service";
 import { Proveedor } from "../../interfaces/proveedor";
 import { useAlertStore } from "@/app/store/ui/alert.store";
 
 interface Props {
-  hasChanges: boolean;
+  // hasChanges: boolean;
   proveedores: Proveedor[];
   selectedProveedor: Proveedor | null;
   setSelectedProveedor: (proveedor: Proveedor | null) => void;
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const TarifarioHeader = ({
-  hasChanges,
+  // hasChanges,
   proveedores,
   selectedProveedor,
   setSelectedProveedor,
@@ -41,24 +41,21 @@ export const TarifarioHeader = ({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-blue-700 rounded-lg shadow-lg">
-          <FileText className="w-8 h-8 text-white" />
-        </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Tarifarios</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-semibold text-foreground">Gestión de Tarifarios</h1>
+          <p className="text-muted-foreground mt-1">
             Administra tarifas, reparto OMIE y potencias BOE
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        {hasChanges && (
+        {/* {hasChanges && (
           <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg">
             <AlertCircle size={18} />
             <span className="font-medium">Cambios pendientes</span>
           </div>
-        )}
+        )} */}
 
         <button
           onClick={exportExcel}
@@ -73,7 +70,7 @@ export const TarifarioHeader = ({
             value={selectedProveedor?.id || ""}
             onChange={(e) => {
               const proveedor = proveedores.find((p) => p.id === Number(e.target.value)) || null;
-              setSelectedProveedor(proveedor);
+              setSelectedProveedor(proveedor ?? null);
             }}
             className="bg-transparent border-0 text-sm font-medium text-gray-700 focus:outline-none focus:ring-0"
           >

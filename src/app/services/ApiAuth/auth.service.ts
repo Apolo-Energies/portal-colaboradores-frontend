@@ -17,10 +17,9 @@ export const userLogin = async (email: string, password: string): Promise<ApiRes
     const response = await ApiManager.post(
       "/auth/login",
       { email, password },
-      { withCredentials: false } // opcional si no usas cookies
+      { withCredentials: false }
     );
 
-    // console.log("response: ", response.data)
     return {
       isSuccess: true,
       displayMessage: "Login exitoso",

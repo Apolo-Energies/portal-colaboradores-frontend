@@ -24,14 +24,14 @@ export interface PotenciasBoe {
 export interface PotenciasBoePeriodo {
   id:            number;
   periodo:       number;
-  valor:         number;
+  valor:         number | null;
   potenciaBoeId: number;
   potenciaBoe:   null;
 }
 export interface ProductoPeriodo {
   id:         number;
   periodo:    number;
-  valor:      number;
+  valor:      number | null;
   productoId: number;
   producto:   null;
 }
@@ -39,7 +39,7 @@ export interface ProductoPeriodo {
 export interface RepartosOmiePeriodo {
   id:            number;
   periodo:       number;
-  factor:        number;
+  factor:        number | null;
   repartoOmieId: number;
   repartoOmie:   null;
 }

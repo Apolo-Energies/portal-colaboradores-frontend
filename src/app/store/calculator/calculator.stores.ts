@@ -90,7 +90,6 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   calcularFactura: (matilData) => {
     const { resultados, resultadosPotencia } = get();
     if (!resultados || !resultadosPotencia) return null;
-    // console.log("resultados: ", resultados)
     const factura = calcularFacturaHelper(resultados, resultadosPotencia, matilData);
     set({ factura });
     return factura;

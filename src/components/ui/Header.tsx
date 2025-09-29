@@ -21,7 +21,6 @@ export const Header = () => {
         const res = await getCommissionUser(session.user.token, session.user.id);
         if (res.isSuccess) {
           setCommission(res.result?.commissionType.percentage);
-          console.log(res.result)
         } else {
           console.error("Error fetching commission:", res.displayMessage);
         }
@@ -31,6 +30,7 @@ export const Header = () => {
     };
 
     fetchCommission();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.token]);
 
   const { toggle } = useSidebarStore();

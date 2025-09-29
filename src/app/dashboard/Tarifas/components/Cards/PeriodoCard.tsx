@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { formatValue } from "@/utils/tarifario/formatsColors";
 import {
   PotenciasBoePeriodo,
@@ -16,8 +16,9 @@ interface Props {
   onEditChange: (value: string) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
+  onDelete?: (periodo: Props["periodo"]) => void;
   decimals?: number;
-  unit: string;
+  unit?: string;
 }
 
 export const PeriodoCard = ({
@@ -29,10 +30,10 @@ export const PeriodoCard = ({
   onEditChange,
   onEditSave,
   onEditCancel,
+  onDelete,
   decimals = 6,
   unit,
 }: Props) => {
-  // 🔹 Determinar el "valor editable" (valor o factor según tipo)
   const value =
     "valor" in periodo
       ? periodo.valor
@@ -40,19 +41,19 @@ export const PeriodoCard = ({
       ? periodo.factor
       : null;
 
-  // label "P1, P2, ..." desde el número
   const periodoLabel =
     periodo.periodo != null ? `P${periodo.periodo}` : "Sin período";
 
+  // Modo edición
   if (isEditing) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         <input
           type="number"
           step={decimals === 6 ? "0.000001" : "0.0001"}
           value={editValue}
           onChange={(e) => onEditChange(e.target.value)}
-          className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full text-sm p-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           autoFocus
           onKeyDown={(e) => {
             if (e.key === "Enter") onEditSave();
@@ -62,47 +63,52 @@ export const PeriodoCard = ({
         <div className="flex justify-center gap-2">
           <button
             onClick={onEditSave}
-            className="p-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="p-1.5 cursor-pointer bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             ✓
           </button>
           <button
             onClick={onEditCancel}
-            className="p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="p-1.5 bg-red-600 cursor-pointer text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             ✕
           </button>
+          {onDelete && value != null && (
+            <button
+              onClick={() => onDelete(periodo)}
+              className="p-1.5 bg-gray-200 cursor-pointer text-red-500 rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  // 🔹 Caso: no existe valor/factor => mostrar botón de agregar
+  // Modo "agregar"
   if (value == null) {
     return (
       <div
-        className="flex flex-col items-center justify-center cursor-pointer p-3 border border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-gray-50 transition"
-        onClick={() => onEditStart(cellId, 0)}
+        className="flex flex-col bg-input items-center justify-center cursor-pointer p-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-body transition"
+        onClick={() => onEditStart(cellId, NaN)} 
       >
-        <Plus size={20} className="text-blue-500 mb-1" />
-        <span className="text-xs text-blue-600">Agregar {periodoLabel}</span>
+        <Plus size={20} className="text-accent-foreground" />
+        <span className="text-xs text-muted-foreground">Agregar {periodoLabel}</span>
       </div>
     );
   }
 
-  // 🔹 Caso: ya existe valor/factor => mostrar número con decimales
+  // Modo visual (solo mostrar valor)
   return (
     <div
-      className="cursor-pointer relative group"
+      className="cursor-text bg-input p-2 rounded-lg hover:bg-body transition"
       onClick={() => onEditStart(cellId, value)}
     >
-      <div className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+      <div className="text-lg font-bold text-card-foreground">
         {formatValue(value, decimals)}
       </div>
-      <div className="text-xs text-gray-500 mt-1">{unit}</div>
-      <div className="absolute -top-1 -right-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1 text-xs">
-        ✏️
-      </div>
+      {unit && <div className="text-xs text-card-foreground mt-1">{unit}</div>}
     </div>
   );
 };

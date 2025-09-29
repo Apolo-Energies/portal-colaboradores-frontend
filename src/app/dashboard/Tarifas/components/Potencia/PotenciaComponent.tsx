@@ -1,33 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { PeriodoCard } from "../Cards/PeriodoCard";
-import { FileText } from "lucide-react";
+import { Zap } from "lucide-react";
 import { getPeriodColor } from "@/utils/tarifario/formatsColors";
-import {
-  Tarifa,
-  PotenciasBoe,
-  PotenciasBoePeriodo,
-} from "../../interfaces/proveedor";
+import { PotenciasBoe, PotenciasBoePeriodo } from "../../interfaces/proveedor";
 import { TarifaSelector } from "../SelectorTop/TarifaSelector";
+import { useAlertStore } from "@/app/store/ui/alert.store";
+import {
+  createPotenciaBoePeriodo,
+  deletePotenciaBoePeriodo,
+  updatePotenciaBoePeriodo,
+} from "@/app/services/TarifarioService/potencia-boe-periodo.service";
+import { useTarifaStore } from "@/app/store/tarifario/tarifa.store";
 
 interface Props {
-  tarifas: Tarifa[];
+  token?: string;
 }
 
-export const PotenciaComponent = ({ tarifas }: Props) => {
+export const PotenciaComponent = ({ token }: Props) => {
   const [selectedTarifa, setSelectedTarifa] = useState<string>("all");
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
-  const [data, setData] = useState<PotenciasBoe[]>([]);
 
-  // Construimos los PotenciasBoe desde las tarifas
-  useEffect(() => {
-    const allPotencias = tarifas.flatMap((t) => t.potenciasBoe);
-    setData(allPotencias);
-  }, [tarifas]);
+  const { showAlert } = useAlertStore();
+  const tarifas = useTarifaStore((state) => state.tarifas);
+  const setTarifas = useTarifaStore((state) => state.setTarifas);
 
+  // Editar celda
   const handleEditStart = (cellId: string, value: number) => {
     setEditingCell(cellId);
-    setEditValue(value.toString());
+    setEditValue(isNaN(value) ? "" : value.toString());
   };
 
   const handleEditCancel = () => {
@@ -35,80 +36,148 @@ export const PotenciaComponent = ({ tarifas }: Props) => {
     setEditValue("");
   };
 
-  const handleEditSave = () => {
-    const newValue = parseFloat(editValue);
-    if (isNaN(newValue)) {
-      alert("Por favor, ingresa un valor numérico válido");
+  // Guardar cambios
+  const handleEditSave = async (periodo: PotenciasBoePeriodo) => {
+    if (!token) {
+      showAlert("Sin token", "error");
       return;
     }
 
-    const [, potenciaIdStr, periodoIdStr] = editingCell!.split("-");
-    const potenciaId = parseInt(potenciaIdStr);
-    const periodoId = parseInt(periodoIdStr);
+    const valor = parseFloat(editValue);
+    if (isNaN(valor)) return;
 
-    setData((prev) =>
-      prev.map((potencia) =>
-        potencia.id === potenciaId
-          ? {
-              ...potencia,
-              periodos: potencia.periodos.map((p) =>
-                p.id === periodoId ? { ...p, valor: newValue } : p
+    try {
+      if (periodo.id === -1) {
+        // Crear
+        const response = await createPotenciaBoePeriodo(token, {
+          potenciaBoeId: periodo.potenciaBoeId,
+          periodo: periodo.periodo,
+          valor,
+          potenciaBoe: null,
+        });
+
+        if (response.isSuccess) {
+          showAlert("Agregado correctamente", "success");
+          setTarifas(
+            tarifas.map((tarifa) => ({
+              ...tarifa,
+              potenciasBoe: tarifa.potenciasBoe.map((p) =>
+                p.id === periodo.potenciaBoeId
+                  ? {
+                      ...p,
+                      periodos: [
+                        ...p.periodos.filter((pp) => pp.periodo !== periodo.periodo),
+                        { ...periodo, id: response.result.id, valor },
+                      ],
+                    }
+                  : p
               ),
-            }
-          : potencia
-      )
-    );
+            }))
+          );
+        }
+      } else {
+        // Actualizar
+        const response = await updatePotenciaBoePeriodo(token, periodo.id, {
+          ...periodo,
+          valor,
+        });
+
+        if (response.isSuccess) {
+          showAlert("Actualizado correctamente", "success");
+          setTarifas(
+            tarifas.map((tarifa) => ({
+              ...tarifa,
+              potenciasBoe: tarifa.potenciasBoe.map((p) =>
+                p.id === periodo.potenciaBoeId
+                  ? {
+                      ...p,
+                      periodos: p.periodos.map((pp) =>
+                        pp.id === periodo.id ? { ...pp, valor } : pp
+                      ),
+                    }
+                  : p
+              ),
+            }))
+          );
+        }
+      }
+    } catch (error) {
+      showAlert("Error al guardar.", "error");
+      console.error(error);
+    }
 
     setEditingCell(null);
     setEditValue("");
   };
 
-  //   const getFilteredData = (): PotenciasBoe[] => {
-  //     if (selectedTarifa === "all") return data;
-  //     if (selectedTarifa === "") return [];
-  //     return data.filter((p) => p.tarifaId === selectedTarifa);
-  //   };
+  // Eliminar periodo
+  const handleDeletePeriodo = async (periodo: PotenciasBoePeriodo) => {
+    if (!token) {
+      showAlert("Sin token", "error");
+      return;
+    }
 
+    try {
+      const response = await deletePotenciaBoePeriodo(token, periodo.id);
+      if (response.isSuccess) {
+        showAlert("Eliminado correctamente", "success");
+        setTarifas(
+          tarifas.map((tarifa) => ({
+            ...tarifa,
+            potenciasBoe: tarifa.potenciasBoe.map((p) =>
+              p.id === periodo.potenciaBoeId
+                ? { ...p, periodos: p.periodos.filter((pp) => pp.id !== periodo.id) }
+                : p
+            ),
+          }))
+        );
+      }
+    } catch (error) {
+      showAlert("Error al eliminar.", "error");
+      console.error(error);
+    }
+
+    setEditingCell(null);
+    setEditValue("");
+  };
+
+  // Filtrar potencias
   const getFilteredData = (): PotenciasBoe[] => {
-    const allRepartos = tarifas.flatMap((tarifa) => tarifa.potenciasBoe);
-    if (selectedTarifa === "all") return allRepartos;
+    const allPotencias = tarifas.flatMap((t) => t.potenciasBoe);
+    if (selectedTarifa === "all") return allPotencias;
     if (selectedTarifa === "") return [];
-    return allRepartos.filter(
-      (item) => item.tarifaId.toString() === selectedTarifa
-    );
+    return allPotencias.filter((p) => p.tarifaId.toString() === selectedTarifa);
+  };
+
+  // Preparar periodos
+  const preparePeriodoData = (potencia: PotenciasBoe) => {
+    const periodosMap = new Map(potencia.periodos.map((p) => [p.periodo, p]));
+
+    return Array.from({ length: 6 }, (_, i) => {
+      const num = i + 1;
+      const periodo: PotenciasBoePeriodo = periodosMap.get(num) ?? {
+        id: -1,
+        periodo: num,
+        valor: null,
+        potenciaBoeId: potencia.id,
+        potenciaBoe: null,
+      };
+
+      return {
+        periodo,
+        cellId: `potencia-${potencia.id}-${num}`,
+        isEditing: editingCell === `potencia-${potencia.id}-${num}`,
+      };
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Seleccionar Tarifa
-        </label>
-        <select
-          value={selectedTarifa}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === "all") setSelectedTarifa("all");
-            else if (val === "") setSelectedTarifa("");
-            else setSelectedTarifa(parseInt(val));
-          }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Selecciona una tarifa</option>
-          <option value="all">Mostrar todos</option>
-          {tarifas.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.codigo}
-            </option>
-          ))}
-        </select>
-      </div> */}
-
       <TarifaSelector
         selectedTarifa={selectedTarifa}
         setSelectedTarifa={setSelectedTarifa}
         options={tarifas}
-        showAll={true}
+        showAll
       />
 
       {selectedTarifa && (
@@ -119,56 +188,51 @@ export const PotenciaComponent = ({ tarifas }: Props) => {
             return (
               <div
                 key={potencia.id}
-                className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+                className="bg-card rounded-lg border border-border shadow-sm overflow-hidden"
               >
-                <div className="p-6 border-b border-gray-100 flex items-center gap-4">
-                  <div className="p-3 bg-blue-700 rounded-lg shadow-lg">
-                    <FileText className="w-6 h-6 text-white" />
+                <div className="p-6 border-b border-border flex items-center gap-3">
+                  <div className="p-2 rounded-lg">
+                    <Zap className="w-6 h-6 text-sidebar-selected-text" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <p className="text-lg font-semibold text-foreground">
                       {tarifa?.codigo ?? "Sin código"}
-                    </h3>
+                    </p>
                   </div>
                 </div>
 
                 <div className="p-6">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-4">
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-4">
                     Periodos de Potencia BOE
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {potencia.periodos.map((periodo: PotenciasBoePeriodo) => {
-                      const cellId = `potencia-${potencia.id}-${periodo.id}`;
-                      const isEditing = editingCell === cellId;
-
-                      return (
+                    {preparePeriodoData(potencia).map(({ periodo, cellId, isEditing }) => (
+                      <div
+                        key={cellId}
+                        className="text-center p-4 bg-body rounded-lg group hover:bg-card transition-all duration-200 border border-border relative"
+                      >
                         <div
-                          key={periodo.id}
-                          className="text-center p-4 bg-gray-50 rounded-lg group hover:bg-gray-100 transition-all duration-200 border border-gray-100"
+                          className={`inline-block px-2.5 py-1 text-xs font-bold rounded-lg mb-3 border ${getPeriodColor(
+                            periodo.periodo
+                          )}`}
                         >
-                          <div
-                            className={`inline-block px-3 py-1.5 text-sm font-bold rounded-lg mb-3 border ${getPeriodColor(
-                              periodo.periodo
-                            )}`}
-                          >
-                            {periodo.periodo}
-                          </div>
-
-                          <PeriodoCard
-                            periodo={periodo}
-                            cellId={cellId}
-                            isEditing={isEditing}
-                            editValue={editValue}
-                            onEditStart={handleEditStart}
-                            onEditChange={setEditValue}
-                            onEditSave={handleEditSave}
-                            onEditCancel={handleEditCancel}
-                            decimals={6}
-                            unit="kW"
-                          />
+                          P{periodo.periodo}
                         </div>
-                      );
-                    })}
+
+                        <PeriodoCard
+                          periodo={periodo}
+                          cellId={cellId}
+                          isEditing={isEditing}
+                          editValue={editValue}
+                          onEditStart={handleEditStart}
+                          onEditChange={setEditValue}
+                          onEditSave={() => handleEditSave(periodo)}
+                          onEditCancel={handleEditCancel}
+                          onDelete={(p) => handleDeletePeriodo(p as PotenciasBoePeriodo)}
+                          decimals={6}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

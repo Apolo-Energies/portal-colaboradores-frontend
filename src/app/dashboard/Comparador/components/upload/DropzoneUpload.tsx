@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 
 import { Upload, X } from "lucide-react";
 import { cn } from "@/utils/utils";
+import Image from "next/image";
 
 const acceptedFormats = [
   "image/png",
@@ -86,7 +87,7 @@ export const DropzoneUpload = ({ onFileSelect }: Props) => {
                 title="PDF Preview"
               />
             ) : (
-              <img
+              <Image
                 src={preview}
                 alt="preview"
                 className="max-h-40 rounded-md object-contain"
