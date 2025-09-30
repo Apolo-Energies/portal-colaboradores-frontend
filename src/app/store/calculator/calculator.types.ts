@@ -1,4 +1,4 @@
-export type Periodo = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+export type Periodo = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface PeriodoResult {
   periodo: Periodo;
@@ -10,7 +10,6 @@ export interface ProductoResult {
   producto: string;
   periodos: PeriodoResult[];
 }
-
 
 export interface PotenciaPeriodoResult {
   periodo: Periodo;

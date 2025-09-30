@@ -6,7 +6,6 @@ import { Dialog } from "@/components/Dialogs/Dialog";
 import { Button } from "@/components/buttons/button";
 import { Slider } from "@/components/ui/Slider";
 import { useForm } from "react-hook-form";
-import { PRODUCTS_BY_TARIFF } from "@/utils/mocks/tarifas";
 import { Select } from "@/components/Selects/Select";
 import { OcrData } from "../../interfaces/matilData";
 import { Input } from "@/components/Inputs/Input";
@@ -19,6 +18,7 @@ import { parseTitular } from "@/utils/paserNameRs";
 import { useCommissionUserStore } from "@/app/store/commission-user/commission-user.store";
 import { downloadExcel } from "@/app/services/FileService/excel.service";
 import { calcularDias } from "@/utils/dates";
+import { useTarifaStore } from "@/app/store/tarifario/tarifa.store";
 
 interface Props {
   open: boolean;
@@ -36,9 +36,18 @@ type FormData = {
 };
 
 export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }: Props) => {
-  const defaultProducto = matilData?.tarifa
-    ? PRODUCTS_BY_TARIFF[matilData?.tarifa][0]
-    : "Index Base";
+  const { tarifas } = useTarifaStore();
+
+  const options =
+  tarifas
+    .filter((t) => t.codigo === matilData?.tarifa)
+    .flatMap((t) =>
+      t.productos.map((p) => ({
+        label: p.nombre,
+        value: p.nombre,
+      }))
+    );
+
 
   const {
     register,
@@ -48,7 +57,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
     // reset,
   } = useForm<FormData>({
     defaultValues: {
-      producto: defaultProducto,
+      producto: options[0]?.value ?? "Index Base",
     },
   });
   const [feeEnergia, setFeeEnergia] = useState([0]);
@@ -57,6 +66,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
   const { commission } = useCommissionUserStore();
 
   const productoSeleccionado = watch("producto");
+
   const comisionEnergia = commission ? commission/100 : 0 ;
   const precioMedioOmieInput = Number(watch("precioMedio")) || 20;
 
@@ -222,14 +232,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
           <Select
             label="Producto a ofertar"
             name="producto"
-            options={
-              matilData?.tarifa
-                ? PRODUCTS_BY_TARIFF[matilData?.tarifa].map((p) => ({
-                    label: p,
-                    value: p,
-                  }))
-                : []
-            }
+            options={options}
             placeholder="Elige una opción"
             register={register}
             required

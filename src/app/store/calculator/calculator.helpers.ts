@@ -1,44 +1,51 @@
-import {
-  POTENCIA_BOE_MOCKS,
-  REPARTO_2_0,
-  REPARTO_3_0_6_1,
-  TARIFF_MOCKS,
-} from "@/utils/mocks/tarifasFijas";
 import { FacturaResult, Periodo, PotenciaResult, ProductoResult } from "./calculator.types";
 import { Detalle } from "@/app/dashboard/Comparador/interfaces/matilData";
 import { calcularDias } from "@/utils/dates";
+import { useTarifaStore } from "../tarifario/tarifa.store";
 
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
 const round3 = (num: number) => Math.round(num * 1000) / 1000;
 
-export const getBaseValue = (
-  tarifa: string,
-  producto: string,
-  periodo: Periodo
-): number => {
-  const prod = TARIFF_MOCKS.find(
-    (p) => p.tarifa === tarifa && p.modalidad === producto
-  );
-  return prod?.periodos[periodo] ?? 0;
+export const getBaseValue = (tarifa: string, producto: string, periodo: Periodo): number => {
+  const { tarifas } = useTarifaStore.getState();
+  const t = tarifas.find((x) => x.codigo === tarifa);
+  if (!t) {
+    return 0;
+  }
+
+  const prod = t.productos.find((p) => p.nombre === producto);
+  if (!prod) {
+    return 0;
+  }
+
+  const p = prod.periodos.find((p) => p.periodo === periodo);
+
+  return p?.valor ?? 0;
 };
 
 export const getRepartoOmie = (tarifa: string, periodo: Periodo): number => {
-  if (tarifa === "2.0TD") {
-    return REPARTO_2_0.datos[0].periodos[periodo] ?? 0;
-  }
-  const mock = REPARTO_3_0_6_1.find((r) => r.tarifa === tarifa);
+  const { tarifas } = useTarifaStore.getState();
+  const t = tarifas.find((x) => x.codigo === tarifa);
+  if (!t) return 0;
+
+  const reparto = t.repartosOmie?.find((r) => r.periodos.some(p => p.periodo === periodo));
+  if (!reparto) return 0;
   
-  return mock?.datos[0].periodos[periodo] ?? 0;
+  const p = reparto.periodos.find(p => p.periodo === periodo);
+  return p?.factor ?? 0;
 };
 
 export const getPotenciaBOE = (tarifa: string, periodo: Periodo): number => {
-  const pot = POTENCIA_BOE_MOCKS.find(p => p.tarifa === tarifa);
-  
-  const valor = pot?.periodos[periodo] ?? 0;
+  const { tarifas } = useTarifaStore.getState();
+  const t = tarifas.find((x) => x.codigo === tarifa);
+  if (!t) return 0;
 
-  return valor;
+  const potencia = t.potenciasBoe?.find((r) => r.periodos.some(p => p.periodo === periodo));
+  if (!potencia) return 0;
+
+  const p = potencia.periodos.find(p => p.periodo === periodo);
+  return p?.valor ?? 0;
 };
-
 
 export const calcularPrecios = (
   tarifa: string,
@@ -99,7 +106,7 @@ export const calcularFacturaHelper = (
   resultadosPotencia: { tarifa: string; periodos: PotenciaResult[] },
   matilData: {fecha_inicio: string, fecha_fin: string,  energia: { p: number; kwh: number }[]; potencia: { p: number; kw: number }[], detalle: Detalle }
 ): FacturaResult => {
-  const PS: Periodo[] = ["P1","P2","P3","P4","P5","P6"];
+  const PS: Periodo[] = [1, 2, 3, 4, 5, 6];
   
   const periodos = PS.map((periodo, idx) => {
     const dias = calcularDias(matilData?.fecha_inicio ?? "", matilData?.fecha_fin)
@@ -115,7 +122,6 @@ export const calcularFacturaHelper = (
     const costeEnergia  = kwh > 0 ? round6(kwh * precioEnergiaOferta) : 0;
     const costePotencia = kw  > 0 ? round6(kw  * precioPotenciaOferta * dias) : 0;
     const totalPeriodo  = round6(costeEnergia + costePotencia);
-
 
     return { periodo, kwh, kw, precioEnergiaOferta, precioPotenciaOferta, costeEnergia, costePotencia, totalPeriodo };
   }).filter(Boolean) as {
@@ -148,7 +154,7 @@ export const calcularFacturaHelper = (
       (matilData.detalle.otros / diasFacturados) * 365
     ) * (1 + 0.0511269632 + 0.21)
   );
-  
+ 
   const ahorroXAnio = Number(ahorroAnio.toFixed(2));
   return { periodos, totalEnergia, totalPotencia, total, ahorroEstudio, ahorro_porcent, ahorroXAnio, subTotal, impuestoElectrico, iva, totalAnio };
 };

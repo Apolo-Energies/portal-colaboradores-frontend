@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { ModeToggle } from "../buttons/ModeToggle";
 import { Button } from "../buttons/button";
 import { UserMenu } from "./UserMenu";
-import { useSidebarStore } from "@/app/store/sidebar.store";
+import { useSidebarStore } from "@/app/store/ui/sidebar.store";
 import { useSession } from "next-auth/react";
 import { getCommissionUser } from "@/app/services/UserCommissionService/user-commission.service";
 import { useCommissionUserStore } from "@/app/store/commission-user/commission-user.store";

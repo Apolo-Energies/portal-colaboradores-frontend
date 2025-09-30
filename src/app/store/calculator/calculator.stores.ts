@@ -50,7 +50,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     if (!tarifa) return null;
 
     const periodos: { periodo: Periodo; base: number; oferta: number }[] = (
-      ["P1", "P2", "P3", "P4", "P5", "P6"] as Periodo[]
+      [1, 2, 3, 4, 5, 6] as Periodo[]
     ).map((periodo) => {
       const { base, oferta } = calcularPrecios(
         tarifa,
@@ -71,7 +71,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   setPotencia: (tarifa: string, feePotencia: number, modalidad: string) => {
     if (!tarifa) return null;
 
-    const periodos = (["P1","P2","P3","P4","P5","P6"] as Periodo[]).map(
+    const periodos = ([1, 2, 3, 4, 5, 6] as Periodo[]).map(
       (periodo) => {
         const { base, oferta } = calcularPotencia(tarifa, periodo, feePotencia, modalidad);
         return {

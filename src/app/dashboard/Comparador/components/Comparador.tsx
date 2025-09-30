@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/buttons/button";
 import { DropzoneUpload } from "./upload/DropzoneUpload";
@@ -11,22 +11,48 @@ import { subirYProcesarDocumento } from "@/app/services/MatilService/ocr.service
 import { getTipoArchivo } from "@/utils/typeFile";
 import { OcrData } from "../interfaces/matilData";
 import { useSession } from "next-auth/react";
+import { getProveedorByUser } from "@/app/services/TarifarioService/proveedor.service";
+import { useTarifaStore } from "@/app/store/tarifario/tarifa.store";
 
 export const Comparador = () => {
   const [matilData, setMatilData] = useState<unknown | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
-
+  
   const [file, setFile] = useState<File | string | null>(null);
   const [openModal, setOpenModal] = useState(false);
-
+  
   const { setLoading } = useLoadingStore();
   const { showAlert } = useAlertStore();
+  
+  const { setTarifas, setProveedorActual } = useTarifaStore();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    const fetchTarifas = async () => {
+      if (!session?.user?.token) return;
+
+      try {
+        const response = await getProveedorByUser(session.user.token);
+
+        if (response.isSuccess && response.result) {
+          setProveedorActual(response.result);
+          setTarifas(response.result.tarifas ?? []);
+        } else {
+          console.error("Error cargando tarifas:", response.errorMessages);
+        }
+      } catch (err) {
+        console.error("Fallo al obtener tarifas:", err);
+      }
+    };
+
+    fetchTarifas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.token]);
 
   const handleFileSelect = (file: File | string) => {
     setFile(file);
   };
 
-  const { data: session } = useSession();
 
   const handleComparar = async () => {
     if (!file || typeof file === "string") return;

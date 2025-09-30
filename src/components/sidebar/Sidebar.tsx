@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react'
-import { useSidebarStore } from "@/app/store/sidebar.store";
+import { useSidebarStore } from "@/app/store/ui/sidebar.store";
 import { SidebarContent } from "./SidebarContent";
 
 export const Sidebar = () => {
