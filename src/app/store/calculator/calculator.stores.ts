@@ -24,8 +24,8 @@ interface CalculatorState {
   
   calcularFactura: (matilData: {
     fecha_inicio: string, fecha_fin: string,
-    energia: Array<{ p: number; kwh: number }>;
-    potencia: Array<{ p: number; kw: number }>;
+    energia: Array<{ p: number; kwh: number, activa_eur: number }>;
+    potencia: Array<{ p: number; kw: number, potencia_eur: number }>;
     detalle: Detalle
   }) => FacturaResult | null;
 }
@@ -70,7 +70,6 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
 
   setPotencia: (tarifa: string, feePotencia: number, modalidad: string) => {
     if (!tarifa) return null;
-
     const periodos = ([1, 2, 3, 4, 5, 6] as Periodo[]).map(
       (periodo) => {
         const { base, oferta } = calcularPotencia(tarifa, periodo, feePotencia, modalidad);

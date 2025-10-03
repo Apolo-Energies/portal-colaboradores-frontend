@@ -27,7 +27,9 @@ export interface FacturaPeriodo {
   periodo: Periodo;
   kwh: number;                 // de matil
   kw: number;                  // de matil
+  precioEnergia: number;
   precioEnergiaOferta: number; // €/kWh
+  precioPotencia: number;
   precioPotenciaOferta: number;// €/kW·día
   costeEnergia: number;        // kWh * precioEnergiaOferta
   costePotencia: number;       // kW  * precioPotenciaOferta
@@ -46,4 +48,6 @@ export interface FacturaResult {
   impuestoElectrico: number;
   iva: number;
   totalAnio: number;
+  costesComunesConIE: number
+  dias: number;
 }

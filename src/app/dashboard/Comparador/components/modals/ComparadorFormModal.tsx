@@ -17,8 +17,7 @@ import { File, Unidad } from "@/app/services/interfaces/pdf";
 import { parseTitular } from "@/utils/paserNameRs";
 import { useCommissionUserStore } from "@/app/store/commission-user/commission-user.store";
 import { downloadExcel } from "@/app/services/FileService/excel.service";
-import { calcularDias } from "@/utils/dates";
-import { useTarifaStore } from "@/app/store/tarifario/tarifa.store";
+import { PRODUCTS_BY_TARIFF } from "@/utils/tarifario/tarifas";
 
 interface Props {
   open: boolean;
@@ -36,18 +35,12 @@ type FormData = {
 };
 
 export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }: Props) => {
-  const { tarifas } = useTarifaStore();
-
+  
   const options =
-  tarifas
-    .filter((t) => t.codigo === matilData?.tarifa)
-    .flatMap((t) =>
-      t.productos.map((p) => ({
-        label: p.nombre,
-        value: p.nombre,
-      }))
-    );
-
+  PRODUCTS_BY_TARIFF[matilData?.tarifa ?? ""]?.map((producto) => ({
+    label: producto,
+    value: producto,
+    })) ?? [];
 
   const {
     register,
@@ -117,7 +110,6 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
 
   const handleDownloadFile = async (type: ExportType) => {
     try {
-      const dias = calcularDias(matilData?.fecha_inicio ?? "", matilData?.fecha_fin ?? "")
       const periodos = resultadoFactura?.periodos || [];
       const { nombreEmpresa, razonSocial } = parseTitular(matilData?.titular);
       const lineas = [
@@ -125,12 +117,12 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...(matilData?.energia || []).map((e: any) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const periodo = periodos.find((p: any) => p.periodo === `P${e.p}`);
+          const periodo = periodos.find((p: any) => p.periodo === e.p);
           return {
             termino: `ENERGÍA P${e.p}`,
             unidad: Unidad.KWh,
             valor: e.kwh,
-            precioActual: e.kwh ? e.activa_eur / e.kwh : 0,
+            precioActual: periodo ? periodo.precioEnergia : 0,
             costeActual: e.activa_eur,
             precioOferta: periodo ? periodo.precioEnergiaOferta : 0,
             costeOferta: periodo ? periodo.costeEnergia : 0,
@@ -142,19 +134,20 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
         ...(matilData?.potencia || []).map((p: any) => {
           const periodo = periodos.find(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (per: any) => per.periodo === `P${p.p}`
+            (per: any) => per.periodo === p.p
           );
           return {
             termino: `POTENCIA P${p.p}`,
             unidad: Unidad.KW,
             valor: p.kw,
-            precioActual: p.kw ? p.potencia_eur / p.kw / dias : 0,
+            precioActual: periodo ? periodo.precioPotencia : 0,
             costeActual: p.potencia_eur,
             precioOferta: periodo ? periodo.precioPotenciaOferta : 0,
             costeOferta: periodo ? periodo.costePotencia : 0,
           };
         }),
       ];
+
       const exportData: File = {
         lineas,
         archivoId: fileId,
@@ -166,7 +159,7 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
           tarifa: matilData?.tarifa || "-",
           modalidad: productoSeleccionado,
           periodo: matilData?.fecha_fin || "-",
-          diasFactura: dias,
+          diasFactura: resultadoFactura!.dias,
           ahorro: resultadoFactura?.ahorroEstudio || 0,
           ahorroPorcentaje: resultadoFactura?.ahorro_porcent || 0,
           ahorroAnual: resultadoFactura?.ahorroXAnio || 0,
@@ -198,8 +191,10 @@ export const ComparadorFormModal = ({ open, onClose, matilData, fileId, token }:
           ivaOferta: resultadoFactura?.iva || 0,
           totalActual: matilData?.detalle?.total || 0,
           totalOferta: resultadoFactura?.total || 0,
-          otrosComunesConIeActual:matilData?.detalle?.bono_social || 0,
-          otrosComunesConIeOferta: matilData?.detalle?.bono_social || 0,
+          
+          
+          otrosComunesConIeActual: resultadoFactura?.costesComunesConIE || 0,
+          otrosComunesConIeOferta: resultadoFactura?.costesComunesConIE || 0,
           // datos un iniciertos
           otrosComunesSinIeActual: 0,
           otrosComunesSinIeOferta: 0,
