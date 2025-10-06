@@ -93,12 +93,12 @@ export const calcularPotencia = (
 ) => {
   const potenciaBase = getPotenciaBOE(tarifa, periodo);
   
-  if (tarifa === "3.0TD" && periodo === 4 && modalidad === "Index Promo") {
-    return {
-      base: 0,
-      oferta: round6(0.010086441),
-    };
-  }
+  // if (tarifa === "3.0TD" && periodo === 4 && modalidad === "Index Promo") {
+  //   return {
+  //     base: 0,
+  //     oferta: round6(0.010086441),
+  //   };
+  // }
   const potenciaOferta = modalidad === "Index Promo" ? potenciaBase : potenciaBase + feePotencia / 365;
   return {
     base: round6(potenciaBase),
