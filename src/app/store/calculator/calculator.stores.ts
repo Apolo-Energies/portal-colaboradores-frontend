@@ -48,7 +48,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
     feeEnergia: number
   ) => {
     if (!tarifa) return null;
-
+    console.log("Calculando producto:", { tarifa: tarifa, producto: producto, precioMedioOmie: precioMedioOmie, feeEnergia });
     const periodos: { periodo: Periodo; base: number; oferta: number }[] = (
       [1, 2, 3, 4, 5, 6] as Periodo[]
     ).map((periodo) => {
@@ -69,6 +69,7 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   },
 
   setPotencia: (tarifa: string, feePotencia: number, modalidad: string) => {
+    console.log("Calculando potencia:", { tarifa: tarifa, feePotencia: feePotencia, modalidad: modalidad });
     if (!tarifa) return null;
     const periodos = ([1, 2, 3, 4, 5, 6] as Periodo[]).map(
       (periodo) => {

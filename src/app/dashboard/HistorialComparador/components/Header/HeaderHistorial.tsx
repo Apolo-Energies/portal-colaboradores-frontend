@@ -1,7 +1,10 @@
 import React from "react";
 import { InputSearch } from "@/components/Inputs/InputSearch";
 import { HistorialFilters } from "../../interfaces/historial-filter";
-import { Search, X } from "lucide-react";
+import { Download, Search, X } from "lucide-react";
+import { downloadExcelReport } from "@/app/services/FileService/excel.service";
+import { useAlertStore } from "@/app/store/ui/alert.store";
+import { useSession } from "next-auth/react";
 
 interface Props {
   filters: HistorialFilters;
@@ -15,6 +18,24 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
     onSearch({});
   };
 
+  const {showAlert} = useAlertStore()
+    const { data: session } = useSession();
+  
+  const exportExcel = async () => {
+    const token = session?.user?.token;
+    if (!token) {
+      showAlert('Sin token', "error");
+      console.error("Sin proveedor o token");
+      return;
+    }
+    try {
+      await downloadExcelReport(token);
+    } catch (error) {
+      showAlert(`${error}`, "error");
+      console.error("Error al descargar el Excel:", error);
+    }
+  };
+
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
       <div className="flex justify-between items-center mb-6">
@@ -22,7 +43,13 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
           Historial Comparador
         </h1>
       </div>
-
+      <button
+          onClick={exportExcel}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <Download size={16} />
+          Exportar Excel
+        </button>
       {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <InputSearch
