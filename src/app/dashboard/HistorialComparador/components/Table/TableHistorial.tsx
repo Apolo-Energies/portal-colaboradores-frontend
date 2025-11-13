@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { HistorialComparador } from "../../interfaces/historila-comparador";
+import { HistorialComparador, HistorialPaged } from "../../interfaces/historila-comparador";
 import { useSession } from "next-auth/react";
 import { Column, DataTable } from "@/components/ui/DataTable";
 import { HistorialFilters } from "../../interfaces/historial-filter";
 import { useLoadingStore } from "@/app/store/ui/loading.store";
 import { getHistorialComparador } from "@/app/services/HistorialService/historial.service";
+import { Paginator } from "@/components/ui/Paginator";
 
 interface Props {
   filters: HistorialFilters;
@@ -12,6 +13,11 @@ interface Props {
 
 export const TableHistorial = ({ filters }: Props) => {
   const [historials, setHistorials] = useState<HistorialComparador[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0)
+  const [pageSize, setPageSize] = useState(10);
+
   const { setLoading } = useLoadingStore();
   const { data: session } = useSession();
 
@@ -22,9 +28,12 @@ export const TableHistorial = ({ filters }: Props) => {
         if (!session?.user.token) {
           return;
         }
-        const response = await getHistorialComparador(session.user.token, filters);
+        const response = await getHistorialComparador(session.user.token, {...filters, page: currentPage, pageSize});
         if (response.status === 200) {
-          setHistorials(response.result);
+          setHistorials(response.result.items);
+          setCurrentPage(response.result.currentPage);
+          setTotalPages(response.result.totalPages || 1);
+          setTotalCount(response.result.totalCount || 0);
         } else {
           console.error("Error cargando usuarios:", response.result);
         }
@@ -34,8 +43,8 @@ export const TableHistorial = ({ filters }: Props) => {
     };
 
     fetchUsers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user.token, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.token, filters, currentPage, pageSize]);
 
   const columns: Column<HistorialComparador>[] = [
     {
@@ -74,5 +83,20 @@ export const TableHistorial = ({ filters }: Props) => {
     },
   ];
 
-  return <DataTable data={historials} columns={columns} rowKey="id" />;
+  return (
+    <div className="flex flex-col gap-4">
+      <DataTable data={historials} columns={columns} rowKey="id" />
+      <Paginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={pageSize}
+        onPageChange={(page) => setCurrentPage(page)}
+        onPageSizeChange={(size) => {
+          setPageSize(size);
+          setCurrentPage(1);
+        }}
+      />
+    </div>
+  )
 };

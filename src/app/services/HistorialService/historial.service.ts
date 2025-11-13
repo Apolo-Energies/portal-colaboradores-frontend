@@ -1,13 +1,13 @@
 import axios from "axios";
 import { ApiResponse } from "../interfaces/ApiResponse";
-import { HistorialComparador } from "@/app/dashboard/HistorialComparador/interfaces/historila-comparador";
+import { HistorialComparador, HistorialPaged } from "@/app/dashboard/HistorialComparador/interfaces/historila-comparador";
 import { HistorialFilters } from "@/app/dashboard/HistorialComparador/interfaces/historial-filter";
 import { ApiManager } from "../ApiManager/ApiManager";
 
 export const getHistorialComparador = async (
   token: string,
   filters: HistorialFilters = {}
-): Promise<ApiResponse<HistorialComparador[]>> => {
+): Promise<ApiResponse<HistorialPaged>> => {
   try {
     const { email, fecha, cups, page = 1, pageSize = 15 } = filters;
 
@@ -17,7 +17,7 @@ export const getHistorialComparador = async (
       },
       params: {
         email,
-        fecha,
+        fechaInicio: fecha,
         cups,
         page,
         pageSize
@@ -36,7 +36,7 @@ export const getHistorialComparador = async (
     console.error("Get historialComparador error:", error);
     if (axios.isAxiosError(error)) {
       return {
-        result: [],
+        result: {} as HistorialPaged,
         status: error.response?.status ?? 500,
         isSuccess: false,
         displayMessage: error.response?.data?.displayMessage ?? "Unknown error",
@@ -44,7 +44,7 @@ export const getHistorialComparador = async (
       };
     }
     return {
-      result: [],
+      result: {} as HistorialPaged,
       status: 500,
       isSuccess: false,
       displayMessage: "Unknown error",
@@ -52,3 +52,4 @@ export const getHistorialComparador = async (
     };
   }
 };
+

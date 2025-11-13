@@ -5,3 +5,8 @@ export interface HistorialFilters {
   page?: number;
   pageSize?: number;
 }
+
+export interface HistorialSummaryFilters {
+  fechaInicio?: string;
+  fechaFin?: string;
+}
