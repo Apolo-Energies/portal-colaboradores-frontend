@@ -20,6 +20,7 @@ import { useAlertStore } from "@/app/store/ui/alert.store";
 import { useReloadStore } from "@/app/store/reloadData/reloadFlag.store";
 import { Proveedor } from "@/app/dashboard/Tarifas/interfaces/proveedor";
 import { getProveedores } from "@/app/services/TarifarioService/proveedor.service";
+import { ModalRestorePassword } from "../Modals/ModalRestorePassword";
 
 interface Props {
   filters: {
@@ -34,6 +35,8 @@ export const TableUsers = ({ filters }: Props) => {
   const [commissionOptions, setCommissionOptions] = useState<Commission[]>([]);
   const [providersOptions, setProvidersOptions] = useState<Proveedor[]>([]);
   const { data: session /*status*/ } = useSession();
+  const [open, setOpen] = useState(false)
+  const [user, setUser] = useState<User>();
   const { setLoading } = useLoadingStore();
   const { showAlert } = useAlertStore();
   const { reloadFlag } = useReloadStore();
@@ -130,21 +133,21 @@ export const TableUsers = ({ filters }: Props) => {
       users.map((user) =>
         user.id === userId
           ? {
-              ...user,
-              commissionId: selected.id,
-              commissions: selected.percentage,
-              userCommissions: [
-                {
-                  id: user.userCommissions?.[0]?.id ?? "",
-                  commissionType: {
-                    ...selected,
-                    id: selected.id ?? "",
-                    name: selected.name ?? "",
-                    percentage: selected.percentage ?? 0,
-                  },
+            ...user,
+            commissionId: selected.id,
+            commissions: selected.percentage,
+            userCommissions: [
+              {
+                id: user.userCommissions?.[0]?.id ?? "",
+                commissionType: {
+                  ...selected,
+                  id: selected.id ?? "",
+                  name: selected.name ?? "",
+                  percentage: selected.percentage ?? 0,
                 },
-              ] as UserCommission[],
-            }
+              },
+            ] as UserCommission[],
+          }
           : user
       )
     );
@@ -159,10 +162,10 @@ export const TableUsers = ({ filters }: Props) => {
       users.map((user) =>
         user.id === userId
           ? {
-              ...user,
-              proveedorId: selected.id,
-              commissionId: selected.id,
-            }
+            ...user,
+            proveedorId: selected.id,
+            commissionId: selected.id,
+          }
           : user
       )
     );
@@ -221,6 +224,11 @@ export const TableUsers = ({ filters }: Props) => {
     }
   };
 
+  const handleEdit = (user: User) => {
+    setUser(user);
+    setOpen(true);
+  }
+
   const columns: Column<User>[] = [
     {
       key: "nombreCompleto",
@@ -253,11 +261,10 @@ export const TableUsers = ({ filters }: Props) => {
               parseInt(e.target.value) as number
             )
           }
-          className={`text-xs font-medium rounded-full px-3 py-1 border-0 ${
-            user.role === 1
-              ? "bg-purple-100 text-purple-800"
-              : "bg-blue-100 text-blue-800"
-          }`}
+          className={`text-xs font-medium rounded-full px-3 py-1 border-0 ${user.role === 1
+            ? "bg-purple-100 text-purple-800"
+            : "bg-blue-100 text-blue-800"
+            }`}
         >
           <option value={1}>Master</option>
           <option value={2}>Colaborador</option>
@@ -274,11 +281,10 @@ export const TableUsers = ({ filters }: Props) => {
           onChange={(e) =>
             updateUserStatus(user.id as string, e.target.value === "true")
           }
-          className={`text-xs font-medium rounded-full px-3 py-1 border-0 ${
-            user.estadoActivo
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
+          className={`text-xs font-medium rounded-full px-3 py-1 border-0 ${user.estadoActivo
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+            }`}
         >
           <option value="true">Activo</option>
           <option value="false">Inactivo</option>
@@ -293,13 +299,13 @@ export const TableUsers = ({ filters }: Props) => {
         <SelectOptions
           value={user.userCommissions?.[0]?.commissionType?.id ?? ""}
           options={commissionOptions.map((c) => ({
-            id: c.id ?? "", 
+            id: c.id ?? "",
             name: c.name
           }))}
           onChange={(val) => handleCommissionChange(user.id as string, val)}
         />
       ),
-    },    
+    },
     {
       key: "providers",
       label: "Proveedor",
@@ -317,7 +323,27 @@ export const TableUsers = ({ filters }: Props) => {
         />
       ),
     },
+    // {
+    //   key: 'acciones',
+    //   label: 'Acciones',
+    //   align: 'center',
+    //   render: (user: User) => (
+    //     <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900 transition-colors cursor-pointer">
+    //       Restablecer contraseña
+    //     </button>
+    //   ),
+    // },
   ];
 
-  return <DataTable data={filteredUsers} columns={columns} rowKey="id" />;
+  return (
+    <>
+      <DataTable data={filteredUsers} columns={columns} rowKey="id" />;
+      {user && (
+        <ModalRestorePassword
+          open={open}
+          user={user}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>)
 };

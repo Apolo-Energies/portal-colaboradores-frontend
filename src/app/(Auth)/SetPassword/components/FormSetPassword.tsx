@@ -5,6 +5,8 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { RingLoader } from "react-spinners";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/app/services/ApiAuth/auth.service";
+import { useAlertStore } from "@/app/store/ui/alert.store";
+import { validatePassword } from "@/utils/validators/validatePassword";
 
 export const FormSetPassword = () => {
   const router = useRouter();
@@ -19,6 +21,7 @@ export const FormSetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState("");
+  const { showAlert } = useAlertStore()
 
   // Redirigir al login si no vienen userId o token
   useEffect(() => {
@@ -32,20 +35,37 @@ export const FormSetPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
       setMessage("Las contraseñas no coinciden");
       return;
     }
 
-    setLoading(true);
-    const result = await resetPassword({ userId, token, newPassword: password });
-    setMessage(result.displayMessage);
-    setLoading(false);
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setMessage(passwordError);
+      return;
+    }
 
-    if (result.isSuccess) {
-      setSuccess(true);
-      // Redirigir automáticamente al login después de 5 segundos
-      setTimeout(() => router.replace("/"), 5000);
+    setLoading(true);
+
+    try {
+      const result = await resetPassword({ userId, token, newPassword: password });
+      console.log("resultado: ", result)
+      if (result.isSuccess === true) {
+        setSuccess(true);
+        setMessage("La contraseña se modificó correctamente.");
+        showAlert("La contraseña se modificó correctamente.", "success");
+        setTimeout(() => router.replace("/"), 5000);
+      } else {
+        setMessage(result.displayMessage || "Ocurrió un error al cambiar la contraseña.");
+        showAlert(result.displayMessage || "Ocurrió un error al cambiar la contraseña.", "error");
+      }
+    } catch (error) {
+      setMessage("Error inesperado al intentar cambiar la contraseña.");
+      showAlert("Error inesperado al intentar cambiar la contraseña.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,7 +118,7 @@ export const FormSetPassword = () => {
               Confirmar contraseña
             </label>
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword2 ? "text" : "password"}
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

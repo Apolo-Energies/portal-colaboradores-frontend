@@ -18,9 +18,9 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
     onSearch({});
   };
 
-  const {showAlert} = useAlertStore()
-    const { data: session } = useSession();
-  
+  const { showAlert } = useAlertStore()
+  const { data: session } = useSession();
+
   const exportExcel = async () => {
     const token = session?.user?.token;
     if (!token) {
@@ -42,14 +42,14 @@ export const HeaderHistorial = ({ filters, setFilters, onSearch }: Props) => {
         <h1 className="text-2xl font-semibold text-foreground">
           Historial Comparador
         </h1>
-      </div>
-      <button
+        <button
           onClick={exportExcel}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
           <Download size={16} />
           Exportar Excel
         </button>
+      </div>
       {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <InputSearch

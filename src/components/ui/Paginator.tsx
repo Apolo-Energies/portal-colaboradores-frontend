@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../buttons/button";
 
@@ -6,9 +6,18 @@ interface Props {
     currentPage: number;
     totalPages: number;
     totalCount?: number;
-    pageSize: number; // 👈 nuevo
+    pageSize: number;
     onPageChange: (page: number) => void;
-    onPageSizeChange: (size: number) => void; // 👈 nuevo
+    onPageSizeChange: (size: number) => void;
+
+    borderTop?: boolean;
+    borderBottom?: boolean;
+    borderLeft?: boolean;
+    borderRight?: boolean;
+    roundedTopLeft?: boolean;
+    roundedTopRight?: boolean;
+    roundedBottomLeft?: boolean;
+    roundedBottomRight?: boolean;
     className?: string;
 }
 
@@ -19,81 +28,146 @@ export const Paginator: React.FC<Props> = ({
     pageSize,
     onPageChange,
     onPageSizeChange,
+    borderTop = true,
+    borderBottom = true,
+    borderLeft = true,
+    borderRight = true,
+    roundedTopLeft = true,
+    roundedTopRight = true,
+    roundedBottomLeft = true,
+    roundedBottomRight = true,
     className = "",
 }) => {
-    const handlePrev = () => {
-        if (currentPage > 1) onPageChange(currentPage - 1);
+    const [inputPage, setInputPage] = useState(currentPage);
+
+    const handlePageClick = (page: number) => {
+        if (page < 1 || page > totalPages) return;
+        onPageChange(page);
+        setInputPage(page);
     };
 
-    const handleNext = () => {
-        if (currentPage < totalPages) onPageChange(currentPage + 1);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = Number(e.target.value);
+        setInputPage(value);
     };
 
-    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+    const handleGoToPage = () => {
+        if (inputPage >= 1 && inputPage <= totalPages) {
+            onPageChange(inputPage);
+        } else {
+            setInputPage(currentPage);
+        }
+    };
+
+    const getPageNumbers = () => {
+        const delta = 2;
+        const range: (number | string)[] = [];
+        const left = Math.max(2, currentPage - delta);
+        const right = Math.min(totalPages - 1, currentPage + delta);
+
+        range.push(1);
+
+        if (left > 2) range.push("...");
+
+        for (let i = left; i <= right; i++) {
+            range.push(i);
+        }
+
+        if (right < totalPages - 1) range.push("...");
+
+        if (totalPages > 1) range.push(totalPages);
+
+        return range;
+    };
+
+    const wrapperClasses = [
+        "flex flex-col md:flex-row bg-card items-center justify-between px-4 py-4 gap-2 text-sm",
+        borderTop ? "border-t border-border" : "",
+        borderBottom ? "border-b border-border" : "",
+        borderLeft ? "border-l border-border" : "",
+        borderRight ? "border-r border-border" : "",
+        roundedTopLeft ? "rounded-tl-[8px]" : "",
+        roundedTopRight ? "rounded-tr-[8px]" : "",
+        roundedBottomLeft ? "rounded-bl-[8px]" : "",
+        roundedBottomRight ? "rounded-br-[8px]" : "",
+        className,
+    ].join(" ");
 
     return (
-        <div
-            className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${className}`}
-        >
-            {/* 🔹 Información */}
-            <div className="text-sm text-gray-600 flex flex-wrap items-center gap-3">
-                <span>
-                    Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
-                    {totalCount !== undefined && (
-                        <> — Total registros: <strong>{totalCount}</strong></>
-                    )}
-                </span>
+        <div className={wrapperClasses}>
+            <div>
+                Página {currentPage} de {totalPages} — Total registros: {totalCount}
+            </div>
 
-                {/* 🔹 Selector de cantidad */}
-                <div className="flex items-center gap-2">
-                    <label htmlFor="pageSize" className="text-gray-700">
-                        Ver:
-                    </label>
-                    <select
-                        id="pageSize"
-                        value={pageSize}
-                        onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                        className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            <div className="flex items-center gap-1">
+                <button
+                    className="px-2 py-1 border border-border rounded bg-card hover:bg-accent hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handlePageClick(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    &lt;
+                </button>
+
+                {getPageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                        <span key={idx} className="px-2 py-1 bg-card">
+                            ...
+                        </span>
+                    ) : (
+                        <button
+                            key={idx}
+                            className={`px-3 py-1 border border-border rounded ${page === currentPage
+                                ? "bg-accent text-white cursor-default"
+                                : "bg-card hover:bg-accent hover:text-foreground cursor-pointer"
+                                }`}
+                            onClick={() => handlePageClick(Number(page))}
+                        >
+                            {page}
+                        </button>
+                    )
+                )}
+
+                <button
+                    className="px-2 py-1 border border-border rounded bg-card hover:bg-accent hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handlePageClick(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    &gt;
+                </button>
+
+                {/* Input para ir a página */}
+                <div className="flex items-center ml-2 gap-1">
+                    <input
+                        type="number"
+                        value={inputPage}
+                        onChange={handleInputChange}
+                        min={1}
+                        max={totalPages}
+                        className="w-16 border border-border rounded-l px-2 py-1 text-sm bg-card"
+                        title="Número de página"
+                    />
+                    <button
+                        onClick={handleGoToPage}
+                        className="px-3 py-1 border border-border rounded-r bg-card hover:bg-accent hover:text-foreground cursor-pointer"
                     >
-                        {[10, 20, 50, 100, 200].map((size) => (
-                            <option key={size} value={size}>
-                                {size}
-                            </option>
-                        ))}
-                    </select>
+                        Ir
+                    </button>
                 </div>
             </div>
 
-            {/* 🔹 Paginación */}
-            <div className="flex items-center justify-center gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrev}
-                    disabled={currentPage === 1}
+            <div className="flex items-center gap-2">
+                <span>Registros por página:</span>
+                <select
+                    value={pageSize}
+                    onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                    className="border border-border rounded px-2 py-1 bg-card text-sm"
                 >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-
-                {pages.map((page) => (
-                    <Button
-                        key={page}
-                        variant={page === currentPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => onPageChange(page)}
-                    >
-                        {page}
-                    </Button>
-                ))}
-
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+                    {[10, 20, 50, 100].map((size) => (
+                        <option key={size} value={size}>
+                            {size}
+                        </option>
+                    ))}
+                </select>
             </div>
         </div>
     );
