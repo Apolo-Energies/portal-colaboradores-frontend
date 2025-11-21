@@ -323,16 +323,17 @@ export const TableUsers = ({ filters }: Props) => {
         />
       ),
     },
-    // {
-    //   key: 'acciones',
-    //   label: 'Acciones',
-    //   align: 'center',
-    //   render: (user: User) => (
-    //     <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900 transition-colors cursor-pointer">
-    //       Restablecer contraseña
-    //     </button>
-    //   ),
-    // },
+    {
+      key: 'acciones',
+      label: 'Acciones',
+      align: 'center',
+      sticky: true,
+      render: (user: User) => (
+        <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900 transition-colors cursor-pointer">
+          Restablecer contraseña
+        </button>
+      ),
+    },
   ];
 
   return (

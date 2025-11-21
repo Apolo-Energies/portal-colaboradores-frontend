@@ -4,6 +4,7 @@ export interface Column<T> {
     key: string;
     label: string;
     align?: "left" | "center" | "right";
+    sticky?: boolean; 
     render?: (row: T) => React.ReactNode;
 }  
   
@@ -23,7 +24,7 @@ export function DataTable<T>({ data, columns, rowKey }: DataTableProps<T>) {
                   {columns?.map((col) => (
                     <th
                       key={col.key}
-                      className={`px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider text-${col.align || "left"}`}
+                      className={`px-6 py-4 text-xs font-medium text-muted-foreground uppercase tracking-wider ${col.sticky ? "sticky right-0 bg-card z-20 shadow-left" : ""} text-${col.align || "left"}`}
                     >
                       {col.label}
                     </th>
@@ -39,7 +40,7 @@ export function DataTable<T>({ data, columns, rowKey }: DataTableProps<T>) {
                     {columns?.map((col) => (
                       <td
                         key={col.key}
-                        className={`px-6 py-4 whitespace-nowrap text-${col.align || "left"}`}
+                        className={`px-6 py-4 whitespace-nowrap text-${col.align || "left"} ${col.sticky ? "sticky right-0 bg-body z-20 shadow-left" : ""}`}
                       >
                         {col?.render
                           ? col.render(row)
